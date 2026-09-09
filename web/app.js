@@ -27,12 +27,12 @@ const enterpriseData = {
     { id: "SO-2026-004", customer: "Zepto Hyperlocal Warehouses", date: "2026-09-07", amount: "₹540,000", status: "CONFIRMED" },
   ],
   stock: [
-    { sku: "POS-X5-001", name: "NEXUS Core POS Terminal X5", location: "Mumbai Central FC", qty: 100, reorder: 15, status: "Adequate" },
-    { sku: "SCN-PR-002", name: "High-Speed Barcode Scanner Pro", location: "Mumbai Central FC", qty: 350, reorder: 25, status: "Adequate" },
-    { sku: "PDA-IND-004", name: "Rugged Industrial Handheld PDA", location: "Bengaluru Tech Depot", qty: 75, reorder: 10, status: "Adequate" },
-    { sku: "RFID-GT-005", name: "Smart RFID Gate Reader Portal", location: "Bengaluru Tech Depot", qty: 20, reorder: 5, status: "Adequate" },
-    { sku: "WGH-DIM-006", name: "Automated Parcel Dimensioner Scale", location: "Delhi North Hub", qty: 4, reorder: 3, status: "Low Stock Alert" },
-    { sku: "UPS-3K-009", name: "Online UPS 3KVA Double Conversion", location: "Delhi North Hub", qty: 8, reorder: 8, status: "Reorder Required" },
+    { sku: "POS-X5-001", name: "NEXUS Core POS Terminal X5", location: "Mumbai Central FC", qty: 100, reorder: 15, status: "Adequate", unitRate: 32000 },
+    { sku: "SCN-PR-002", name: "High-Speed Barcode Scanner Pro", location: "Mumbai Central FC", qty: 350, reorder: 25, status: "Adequate", unitRate: 15000 },
+    { sku: "PDA-IND-004", name: "Rugged Industrial Handheld PDA", location: "Bengaluru Tech Depot", qty: 75, reorder: 10, status: "Adequate", unitRate: 45000 },
+    { sku: "RFID-GT-005", name: "Smart RFID Gate Reader Portal", location: "Bengaluru Tech Depot", qty: 20, reorder: 5, status: "Adequate", unitRate: 85000 },
+    { sku: "WGH-DIM-006", name: "Automated Parcel Dimensioner Scale", location: "Delhi North Hub", qty: 4, reorder: 3, status: "Low Stock Alert", unitRate: 120000 },
+    { sku: "UPS-3K-009", name: "Online UPS 3KVA Double Conversion", location: "Delhi North Hub", qty: 8, reorder: 8, status: "Reorder Required", unitRate: 28000 },
   ],
   customers: [
     { name: "Tata Consumer Products Ltd", segment: "Enterprise", contact: "Rajesh Nair (VP Ops)", credit: "₹5,000,000", churn: "5%", health: "Healthy" },
@@ -112,6 +112,7 @@ document.addEventListener("DOMContentLoaded", () => {
   setupNavigation();
   setupLucideIcons();
   checkApiConnectivity();
+  updateStockDropdowns();
   renderDashboard();
   renderCRM();
   renderSales();
@@ -221,6 +222,11 @@ async function fetchLiveDashboardData() {
 
 // Render Dashboard
 function renderDashboard() {
+  const totalStockAsset = enterpriseData.stock.reduce((acc, s) => acc + (s.qty * (s.unitRate || 32000)), 0);
+  enterpriseData.finance.inventoryAsset = totalStockAsset;
+  const kpiInv = document.getElementById("kpi-inventory");
+  if (kpiInv) kpiInv.textContent = "₹" + (totalStockAsset / 1000000).toFixed(2) + "M";
+
   const ordersTbody = document.getElementById("dashboard-orders-tbody");
   if (ordersTbody) {
     ordersTbody.innerHTML = enterpriseData.orders.map(o => `
@@ -240,19 +246,23 @@ function renderDashboard() {
 
   const stockTbody = document.getElementById("dashboard-stock-tbody");
   if (stockTbody) {
-    stockTbody.innerHTML = enterpriseData.stock.slice(0, 4).map(s => `
+    stockTbody.innerHTML = enterpriseData.stock.slice(0, 5).map(s => {
+      const statusClass = s.qty <= 0 ? 'danger' : (s.qty <= (s.reorder || 10) ? 'warning' : 'success');
+      const statusLabel = s.qty <= 0 ? 'Out of Stock' : (s.qty <= (s.reorder || 10) ? 'Low Stock' : 'Adequate');
+      return `
       <tr>
         <td class="item-bold">${s.name} <br/><small class="text-muted">${s.sku}</small></td>
         <td>${s.location}</td>
-        <td class="item-bold">${s.qty}</td>
-        <td>${s.reorder}</td>
+        <td class="item-bold">${s.qty} units</td>
+        <td>${s.reorder} units</td>
         <td>
-          <span class="status-pill ${s.status === 'Adequate' ? 'success' : 'warning'}">
-            ${s.status}
+          <span class="status-pill ${statusClass}">
+            ${statusLabel}
           </span>
         </td>
       </tr>
-    `).join("");
+    `;
+    }).join("");
   }
 }
 
@@ -336,16 +346,26 @@ function renderInventory() {
   const tbody = document.getElementById("inventory-table-tbody");
   if (!tbody) return;
 
-  tbody.innerHTML = enterpriseData.stock.map(item => `
+  tbody.innerHTML = enterpriseData.stock.map(item => {
+    const rate = item.unitRate || 32000;
+    const totalVal = item.qty * rate;
+    const statusClass = item.qty <= 0 ? 'danger' : (item.qty <= (item.reorder || 10) ? 'warning' : 'success');
+    const statusLabel = item.qty <= 0 ? 'Out of Stock' : (item.qty <= (item.reorder || 10) ? 'Low Stock' : 'Adequate');
+    return `
     <tr>
       <td class="item-bold">${item.sku}</td>
       <td>${item.name}</td>
       <td>${item.location}</td>
-      <td class="item-bold">${item.qty} units</td>
-      <td>₹${(item.qty * 320).toLocaleString()}</td>
-      <td class="item-bold">₹${(item.qty * 32000).toLocaleString()}</td>
+      <td class="item-bold">
+        <span>${item.qty} units</span>
+        <span class="status-pill ${statusClass}" style="margin-left:8px; font-size:0.7rem;">${statusLabel}</span>
+      </td>
+      <td>₹${rate.toLocaleString("en-IN")}</td>
+      <td class="item-bold">₹${totalVal.toLocaleString("en-IN")}</td>
     </tr>
-  `).join("");
+  `;
+  }).join("");
+  setupLucideIcons();
 }
 
 // Render Finance
@@ -856,7 +876,36 @@ window.submitAddSalesOrder = function() {
     status: "CONFIRMED",
   });
 
+  // DEDUCT STOCK FROM INVENTORY
+  let matchedItem = enterpriseData.stock.find(s => product.includes(s.sku));
+  if (!matchedItem) {
+    matchedItem = enterpriseData.stock.find(s => product.toLowerCase().includes(s.name.toLowerCase()));
+  }
+  if (!matchedItem && enterpriseData.stock.length > 0) {
+    matchedItem = enterpriseData.stock[0];
+  }
+
+  let stockNote = "";
+  if (matchedItem) {
+    const priorQty = matchedItem.qty;
+    matchedItem.qty = Math.max(0, matchedItem.qty - qty);
+    if (matchedItem.qty === 0) {
+      matchedItem.status = "Out of Stock";
+    } else if (matchedItem.qty <= (matchedItem.reorder || 10)) {
+      matchedItem.status = "Low Stock Alert";
+    } else {
+      matchedItem.status = "Adequate";
+    }
+    const valuationDrop = Math.min(priorQty, qty) * (matchedItem.unitRate || 32000);
+    enterpriseData.finance.inventoryAsset = Math.max(0, enterpriseData.finance.inventoryAsset - valuationDrop);
+    stockNote = ` • Stock updated: ${matchedItem.sku} (${matchedItem.location}) reduced by ${qty} units (Remaining: ${matchedItem.qty} units)`;
+  }
+
   renderSales();
+  renderInventory();
+  renderFinance();
+  renderDashboard();
+  updateStockDropdowns();
 
   // Highlight first row
   const tbody = document.getElementById("sales-invoices-tbody");
@@ -870,7 +919,7 @@ window.submitAddSalesOrder = function() {
 
   document.getElementById("form-add-sales-order").reset();
   closeModal("modal-add-sales-order");
-  showToast(`Sales invoice ${invNumber} generated for ${customer}!`, "success");
+  showToast(`Sales invoice ${invNumber} generated for ${customer}!${stockNote}`, "success");
 };
 
 // 3. Submit: Stock Transfer
@@ -1198,7 +1247,113 @@ window.submitEmailInvoice = function() {
     }, 450);
   }, 750);
 };
+// 11. Synchronize Live Stock Quantities in Dropdown Selectors
+function updateStockDropdowns() {
+  const soProductSelect = document.getElementById("so-product");
+  const inwardExistingSelect = document.getElementById("inward-existing-sku");
 
+  if (soProductSelect) {
+    soProductSelect.innerHTML = enterpriseData.stock.map(s => `
+      <option value="${s.sku} - ${s.name}">
+        ${s.sku} • ${s.name} (${s.location} — Stock: ${s.qty} units)
+      </option>
+    `).join("");
+  }
 
+  if (inwardExistingSelect) {
+    const seen = new Set();
+    const uniqueItems = [];
+    for (const s of enterpriseData.stock) {
+      if (!seen.has(s.sku)) {
+        seen.add(s.sku);
+        uniqueItems.push(s);
+      }
+    }
+    inwardExistingSelect.innerHTML = uniqueItems.map(s => `
+      <option value="${s.sku}">
+        ${s.sku} • ${s.name}
+      </option>
+    `).join("");
+  }
+}
 
+// 12. Toggle Inward Product Catalog Mode
+window.handleInwardProductChange = function() {
+  const type = document.getElementById("inward-product-type").value;
+  const existingGroup = document.getElementById("group-existing-stock");
+  const newGroup = document.getElementById("group-new-stock");
+
+  if (type === "NEW") {
+    if (existingGroup) existingGroup.style.display = "none";
+    if (newGroup) newGroup.style.display = "block";
+  } else {
+    if (existingGroup) existingGroup.style.display = "block";
+    if (newGroup) newGroup.style.display = "none";
+  }
+};
+
+// 13. Submit: Inward Stock Receipt / Add Stock to Inventory
+window.submitAddStock = function() {
+  const type = document.getElementById("inward-product-type") ? document.getElementById("inward-product-type").value : "EXISTING";
+  const location = document.getElementById("inward-location").value;
+  const qty = parseInt(document.getElementById("inward-qty").value) || 1;
+  const unitRate = parseFloat(document.getElementById("inward-unit-cost").value) || 20000;
+  const supplier = document.getElementById("inward-supplier").value.trim() || "Foxconn Electronics India Pvt Ltd";
+  const notes = document.getElementById("inward-notes") ? document.getElementById("inward-notes").value.trim() : "";
+
+  let targetSku = "";
+  let productName = "";
+
+  if (type === "NEW") {
+    targetSku = (document.getElementById("inward-new-sku").value.trim() || "SKU-NEW-001").toUpperCase();
+    productName = document.getElementById("inward-new-name").value.trim() || "Enterprise Hardware Asset";
+  } else {
+    targetSku = document.getElementById("inward-existing-sku").value;
+    const existing = enterpriseData.stock.find(s => s.sku === targetSku);
+    productName = existing ? existing.name : "Enterprise Equipment";
+  }
+
+  // Check if item exists at the specific warehouse
+  const existingAtLocation = enterpriseData.stock.find(s => s.sku === targetSku && s.location === location);
+
+  if (existingAtLocation) {
+    existingAtLocation.qty += qty;
+    existingAtLocation.unitRate = unitRate;
+    existingAtLocation.status = existingAtLocation.qty <= (existingAtLocation.reorder || 10) ? "Low Stock Alert" : "Adequate";
+  } else {
+    // Add new inventory record for this SKU at warehouse
+    enterpriseData.stock.unshift({
+      sku: targetSku,
+      name: productName,
+      location: location,
+      qty: qty,
+      reorder: 10,
+      status: "Adequate",
+      unitRate: unitRate,
+    });
+  }
+
+  // Post addition into Finance and modules
+  const assetValuationIncrease = qty * unitRate;
+  enterpriseData.finance.inventoryAsset += assetValuationIncrease;
+
+  renderInventory();
+  renderFinance();
+  renderDashboard();
+  updateStockDropdowns();
+
+  // Highlight first row in inventory table
+  const tbody = document.getElementById("inventory-table-tbody");
+  if (tbody && tbody.firstElementChild) {
+    tbody.firstElementChild.style.backgroundColor = "rgba(16, 185, 129, 0.15)";
+    tbody.firstElementChild.style.transition = "background-color 2s ease";
+    setTimeout(() => {
+      if (tbody.firstElementChild) tbody.firstElementChild.style.backgroundColor = "";
+    }, 2500);
+  }
+
+  document.getElementById("form-add-stock").reset();
+  closeModal("modal-add-stock");
+  showToast(`Inward stock booked! +${qty} units of ${targetSku} added to ${location}. Total asset value +₹${assetValuationIncrease.toLocaleString("en-IN")}.`, "success");
+};
 

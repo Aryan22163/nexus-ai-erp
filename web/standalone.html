@@ -381,6 +381,10 @@
               <i data-lucide="arrow-left-right"></i>
               <span>Transfer Stock</span>
             </button>
+            <button class="btn btn-primary" onclick="openModal('modal-add-stock')">
+              <i data-lucide="package-plus"></i>
+              <span>+ Add Inward Stock</span>
+            </button>
           </div>
         </div>
 
@@ -676,12 +680,14 @@
           </div>
           <div class="form-row">
             <div class="form-group">
-              <label for="so-product">Product Line *</label>
+              <label for="so-product">Product Line &amp; Stock SKU *</label>
               <select id="so-product" required>
-                <option value="POS Terminal Duo (POS-X5-001)">POS Terminal Duo (POS-X5-001)</option>
-                <option value="Thermal Receipt Printer (PRN-TH-003)">Thermal Receipt Printer (PRN-TH-003)</option>
-                <option value="2D Handheld Imager (SCN-2D-002)">2D Handheld Imager (SCN-2D-002)</option>
-                <option value="Heavy-Duty Cash Drawer (CSH-DRW-005)">Heavy-Duty Cash Drawer (CSH-DRW-005)</option>
+                <option value="POS-X5-001 - NEXUS Core POS Terminal X5">POS-X5-001 • NEXUS Core POS Terminal X5</option>
+                <option value="SCN-PR-002 - High-Speed Barcode Scanner Pro">SCN-PR-002 • High-Speed Barcode Scanner Pro</option>
+                <option value="PDA-IND-004 - Rugged Industrial Handheld PDA">PDA-IND-004 • Rugged Industrial Handheld PDA</option>
+                <option value="RFID-GT-005 - Smart RFID Gate Reader Portal">RFID-GT-005 • Smart RFID Gate Reader Portal</option>
+                <option value="WGH-DIM-006 - Automated Parcel Dimensioner Scale">WGH-DIM-006 • Automated Parcel Dimensioner Scale</option>
+                <option value="UPS-3K-009 - Online UPS 3KVA Double Conversion">UPS-3K-009 • Online UPS 3KVA Double Conversion</option>
               </select>
             </div>
             <div class="form-group">
@@ -770,6 +776,95 @@
           <button type="submit" class="btn btn-primary">
             <i data-lucide="truck"></i>
             <span>Dispatch Stock Transfer</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 8: Inward Stock Receipt / Add Stock -->
+  <div class="modal-backdrop" id="modal-add-stock">
+    <div class="modal-card" style="max-width: 580px;">
+      <div class="modal-header">
+        <div class="modal-title">
+          <i data-lucide="package-plus" class="text-indigo-600"></i>
+          <span>Inward Stock Receipt &amp; Inventory Addition</span>
+        </div>
+        <button class="modal-close-btn" onclick="closeModal('modal-add-stock')">&times;</button>
+      </div>
+      <form id="form-add-stock" onsubmit="event.preventDefault(); submitAddStock();">
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="inward-product-type">Catalog Mode *</label>
+            <select id="inward-product-type" onchange="handleInwardProductChange()" required>
+              <option value="EXISTING">Add Stock to Existing Inventory SKU</option>
+              <option value="NEW">+ Register New Catalog Item / SKU</option>
+            </select>
+          </div>
+
+          <!-- Existing Product Selector -->
+          <div class="form-group" id="group-existing-stock">
+            <label for="inward-existing-sku">Target Inventory Item *</label>
+            <select id="inward-existing-sku">
+              <option value="POS-X5-001">POS-X5-001 • NEXUS Core POS Terminal X5</option>
+              <option value="SCN-PR-002">SCN-PR-002 • High-Speed Barcode Scanner Pro</option>
+              <option value="PDA-IND-004">PDA-IND-004 • Rugged Industrial Handheld PDA</option>
+              <option value="RFID-GT-005">RFID-GT-005 • Smart RFID Gate Reader Portal</option>
+              <option value="WGH-DIM-006">WGH-DIM-006 • Automated Parcel Dimensioner Scale</option>
+              <option value="UPS-3K-009">UPS-3K-009 • Online UPS 3KVA Double Conversion</option>
+            </select>
+          </div>
+
+          <!-- New Product Fields -->
+          <div id="group-new-stock" style="display:none;">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="inward-new-sku">New SKU Code *</label>
+                <input type="text" id="inward-new-sku" placeholder="e.g. SCN-3D-010" />
+              </div>
+              <div class="form-group">
+                <label for="inward-new-name">Product Name *</label>
+                <input type="text" id="inward-new-name" placeholder="e.g. 3D Laser Dimensioning Scanner" />
+              </div>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="inward-location">Warehouse / Storage Hub *</label>
+              <select id="inward-location" required>
+                <option value="Mumbai Central FC">Mumbai Central FC (West Hub)</option>
+                <option value="Bengaluru Tech Depot">Bengaluru Tech Depot (South Hub)</option>
+                <option value="Delhi North Hub">Delhi North Hub (North Hub)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="inward-qty">Inward Quantity (Units) *</label>
+              <input type="number" id="inward-qty" value="50" min="1" required />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="inward-unit-cost">Unit Valuation Rate (₹) *</label>
+              <input type="number" id="inward-unit-cost" value="18000" min="100" step="100" required />
+            </div>
+            <div class="form-group">
+              <label for="inward-supplier">Supplier / Vendor Source *</label>
+              <input type="text" id="inward-supplier" value="Foxconn Electronics India Pvt Ltd" required />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="inward-notes">GRN Reference / Inspection Notes</label>
+            <input type="text" id="inward-notes" placeholder="e.g. GRN-2026-8812 • Physical QA Passed / Batch QC Ok" />
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('modal-add-stock')">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="btn-submit-inward-stock">
+            <i data-lucide="package-check"></i>
+            <span>Confirm &amp; Inward Stock</span>
           </button>
         </div>
       </form>
