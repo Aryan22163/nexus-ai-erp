@@ -2269,6 +2269,144 @@ body {
 }
 
 /* ==========================================================================
+   KPI Cards Grid System & Color Utilities (HR, HITL Approvals, Analytics)
+   ========================================================================== */
+.kpi-grid {
+  display: grid !important;
+  grid-template-columns: repeat(4, 1fr) !important;
+  gap: 20px !important;
+  margin-bottom: 24px !important;
+}
+
+@media (max-width: 1200px) {
+  .kpi-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .kpi-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+.kpi-card {
+  background: var(--card-bg, #ffffff) !important;
+  border: 1px solid var(--border-light, #e2e8f0) !important;
+  border-radius: var(--radius-xl, 16px) !important;
+  padding: 20px !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: space-between !important;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease !important;
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+.kpi-card:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08) !important;
+  border-color: var(--border-medium, #cbd5e1) !important;
+}
+
+.kpi-header {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  margin-bottom: 12px !important;
+  width: 100% !important;
+}
+
+.kpi-title {
+  font-size: 0.82rem !important;
+  font-weight: 600 !important;
+  color: var(--text-secondary, #64748b) !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.03em !important;
+}
+
+.kpi-icon-box {
+  width: 40px !important;
+  height: 40px !important;
+  border-radius: 10px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-shrink: 0 !important;
+}
+
+.kpi-icon-box svg, .kpi-icon-box i {
+  width: 20px !important;
+  height: 20px !important;
+  stroke-width: 2 !important;
+}
+
+.kpi-value {
+  font-size: 1.6rem !important;
+  font-weight: 800 !important;
+  color: var(--text-primary, #0f172a) !important;
+  line-height: 1.2 !important;
+  margin-bottom: 10px !important;
+  letter-spacing: -0.02em !important;
+}
+
+.kpi-footer {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  font-size: 0.78rem !important;
+  flex-wrap: wrap !important;
+}
+
+.kpi-trend {
+  font-weight: 700 !important;
+  padding: 2px 8px !important;
+  border-radius: 999px !important;
+  font-size: 0.72rem !important;
+  display: inline-block !important;
+}
+
+.kpi-trend.positive {
+  background: #ECFDF5 !important;
+  color: #059669 !important;
+}
+
+.kpi-trend.warning {
+  background: #FFFBEB !important;
+  color: #D97706 !important;
+}
+
+.kpi-trend.danger {
+  background: #FEF2F2 !important;
+  color: #DC2626 !important;
+}
+
+.kpi-trend.neutral {
+  background: #F1F5F9 !important;
+  color: #475569 !important;
+}
+
+.kpi-caption {
+  color: var(--text-muted, #94a3b8) !important;
+  font-size: 0.75rem !important;
+}
+
+/* Color & Background Utility Helpers */
+.bg-indigo-50 { background-color: #EEF2FF !important; }
+.text-indigo-600 { color: #4F46E5 !important; }
+.bg-emerald-50 { background-color: #ECFDF5 !important; }
+.text-emerald-600 { color: #059669 !important; }
+.bg-amber-50 { background-color: #FFFBEB !important; }
+.text-amber-600 { color: #D97706 !important; }
+.bg-purple-50 { background-color: #F3E8FF !important; }
+.text-purple-600 { color: #9333EA !important; }
+.bg-blue-50 { background-color: #EFF6FF !important; }
+.text-blue-600 { color: #2563EB !important; }
+.bg-rose-50 { background-color: #FFF1F2 !important; }
+.text-rose-600 { color: #E11D48 !important; }
+
+/* ==========================================================================
    HR & Project Sub-Tab Navigation Bar & Kanban Sprint Board
    ========================================================================== */
 .subtab-nav-bar {
