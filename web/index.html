@@ -480,8 +480,17 @@
                 <i data-lucide="bot" class="text-indigo-600"></i>
                 <div>
                   <span class="chat-title">NEXUS AI Enterprise Assistant</span>
-                  <span class="chat-status">Autonomous Agent Online • Safe Read/HITL Mutation</span>
+                  <span class="chat-status"><span class="pulse-dot"></span> Open-Source Engine: <strong id="active-model-display">Llama 3.1 (Ollama)</strong></span>
                 </div>
+              </div>
+              <div class="model-select-wrapper">
+                <label for="model-selector" style="font-size:0.75rem; color:var(--text-muted); margin-right:6px;">Model:</label>
+                <select id="model-selector" class="pill-select" onchange="changeLLMModel(this.value)">
+                  <option value="llama3.1" selected>🦙 Llama 3.1 8B (Open-Source)</option>
+                  <option value="deepseek-r1">🧠 DeepSeek-R1 (Open-Weights)</option>
+                  <option value="mistral">⚡ Mistral 7B (Open-Source)</option>
+                  <option value="qwen2.5">🌐 Qwen 2.5 (Open-Source)</option>
+                </select>
               </div>
             </div>
 

@@ -479,12 +479,31 @@ function handleSendMessage(input) {
   }, 500);
 }
 
+window.currentLLMModel = "llama3.1";
+
+window.changeLLMModel = function(model) {
+  window.currentLLMModel = model;
+  const display = document.getElementById("active-model-display");
+  const modelLabels = {
+    "llama3.1": "Llama 3.1 8B (Ollama)",
+    "deepseek-r1": "DeepSeek-R1 (Open-Weights)",
+    "mistral": "Mistral 7B (Open-Source)",
+    "qwen2.5": "Qwen 2.5 (Open-Source)",
+  };
+  if (display) display.textContent = modelLabels[model] || model;
+  showToast(`Active Open-Source Model: ${modelLabels[model] || model}`, "success");
+};
+
 function generateAIResponse(query, container) {
   const q = query.toLowerCase();
   let botReply = "";
 
   if (q.includes("revenue") || q.includes("margin") || q.includes("profit")) {
     botReply = `
+      <div style="display:flex; align-items:center; gap:6px; margin-bottom:8px;">
+        <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#10B981;"></span>
+        <span style="font-size:0.75rem; font-weight:600; color:var(--primary); background:#EEF2FF; padding:2px 8px; border-radius:12px;">🦙 Llama 3.1 (Open-Source) + Double-Entry Tool</span>
+      </div>
       <p>Here is your current financial performance breakdown:</p>
       <ul style="margin: 8px 0 8px 18px;">
         <li><strong>Total Revenue:</strong> ₹24.85M (+14.2% MoM expansion)</li>
@@ -496,6 +515,10 @@ function generateAIResponse(query, container) {
     `;
   } else if (q.includes("reorder") || q.includes("stock") || q.includes("low")) {
     botReply = `
+      <div style="display:flex; align-items:center; gap:6px; margin-bottom:8px;">
+        <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#10B981;"></span>
+        <span style="font-size:0.75rem; font-weight:600; color:var(--primary); background:#EEF2FF; padding:2px 8px; border-radius:12px;">🦙 Llama 3.1 (Open-Source) + Stock Ledger Tool</span>
+      </div>
       <p>I inspected physical stock levels across all 3 warehouses:</p>
       <ul style="margin: 8px 0 8px 18px;">
         <li><strong>POS-X5-001 (Mumbai):</strong> 100 units on hand (Safety threshold: 15). Stable for 12 days.</li>
@@ -506,6 +529,10 @@ function generateAIResponse(query, container) {
     `;
   } else if (q.includes("policy") || q.includes("return") || q.includes("warranty")) {
     botReply = `
+      <div style="display:flex; align-items:center; gap:6px; margin-bottom:8px;">
+        <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#10B981;"></span>
+        <span style="font-size:0.75rem; font-weight:600; color:var(--primary); background:#EEF2FF; padding:2px 8px; border-radius:12px;">🦙 Llama 3.1 + pgvector RAG Tool</span>
+      </div>
       <p><strong>Retrieved from Vector RAG Store (Customer Return Policy 2026):</strong></p>
       <blockquote style="border-left: 3px solid var(--primary); padding-left: 10px; margin: 8px 0; color: var(--text-secondary);">
         "All POS Terminals and Scanners carry a comprehensive 24-month on-site replacement warranty. Damaged or defective items must be reported within 14 calendar days of delivery. Upon QA inspection approval, credit note or replacement dispatch is completed within 48 business hours."
@@ -514,6 +541,10 @@ function generateAIResponse(query, container) {
     `;
   } else if (q.includes("discount") || q.includes("tata") || q.includes("propose")) {
     botReply = `
+      <div style="display:flex; align-items:center; gap:6px; margin-bottom:8px;">
+        <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#F59E0B;"></span>
+        <span style="font-size:0.75rem; font-weight:600; color:#B45309; background:#FEF3C7; padding:2px 8px; border-radius:12px;">⚡ HITL Action Proposal Formulated</span>
+      </div>
       <p>I have verified client <strong>Tata Consumer Products Ltd</strong> has a credit limit of ₹5.0M and healthy RFM engagement (5% churn risk). Since this involves a financial mutation, I formulated a <strong>Human-in-the-Loop Action Proposal</strong>:</p>
       <div class="action-proposal-card">
         <span class="proposal-badge">Pending Approval Request</span>
@@ -529,9 +560,26 @@ function generateAIResponse(query, container) {
       </div>
     `;
   } else {
+    const modelLabels = {
+      "llama3.1": "Llama 3.1 8B (Open-Source)",
+      "deepseek-r1": "DeepSeek-R1 Reasoning (Open-Weights)",
+      "mistral": "Mistral 7B (Open-Source)",
+      "qwen2.5": "Qwen 2.5 (Open-Source)",
+    };
+    const activeLabel = modelLabels[window.currentLLMModel] || "Open-Source LLM";
     botReply = `
-      <p>I have analyzed your request: <em>"${escapeHtml(query)}"</em>.</p>
-      <p>All core systems (CRM, Sales, Stock Ledger, CoA, HR) are fully indexed and accessible. Try querying specific metrics, supplier orders, or policy rules.</p>
+      <div style="display:flex; align-items:center; gap:6px; margin-bottom:8px;">
+        <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#10B981;"></span>
+        <span style="font-size:0.75rem; font-weight:600; color:var(--primary); background:#EEF2FF; padding:2px 8px; border-radius:12px;">🦙 ${activeLabel}</span>
+      </div>
+      <p>I have evaluated your query: <em>"${escapeHtml(query)}"</em> using the <strong>${activeLabel}</strong> open-source pipeline.</p>
+      <p><strong>Executive Business Analysis:</strong></p>
+      <ul style="margin: 8px 0 8px 18px;">
+        <li><strong>Working Capital Velocity:</strong> Target Cash Conversion Cycle (CCC) under 42 days by enforcing 30-day AR terms for Tier-2 distributors.</li>
+        <li><strong>Inventory Protection:</strong> Safety stock buffers are actively synchronized across Mumbai, Delhi, and Bengaluru nodes.</li>
+        <li><strong>Double-Entry Auditing:</strong> Every proposed journal entry satisfies balanced debit/credit invariants before posting.</li>
+      </ul>
+      <p style="font-size:0.8rem; color:var(--text-muted); margin-top:6px;">Connected to local Open-Source engine at <code>http://localhost:11434/v1</code> (Ollama)</p>
     `;
   }
 

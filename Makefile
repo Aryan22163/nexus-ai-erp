@@ -1,4 +1,4 @@
-.PHONY: help install run-backend run-frontend run-web docker-up docker-down test seed lint clean bundle-singlefile deploy-vercel deploy-netlify
+.PHONY: help install run-backend run-frontend run-web docker-up docker-down test seed lint clean bundle-singlefile deploy-vercel deploy-netlify setup-ollama run-llm
 
 help:
 	@echo "NEXUS AI - Development & Deployment Commands:"
@@ -6,6 +6,8 @@ help:
 	@echo "  make run-web         Serve light-themed (white) HTML/CSS/JS frontend on http://localhost:8080"
 	@echo "  make run-backend     Run FastAPI dev server on http://127.0.0.1:8000"
 	@echo "  make run-frontend    Run Next.js dev server on http://localhost:3000"
+	@echo "  make setup-ollama    Install/configure Ollama and pull open-source Llama 3.1"
+	@echo "  make run-llm         Run local open-source LLM (Ollama Llama 3.1)"
 	@echo "  make bundle-singlefile  Generate single-file self-contained HTML (web/standalone.html)"
 	@echo "  make deploy-vercel   Deploy light white web application to Vercel"
 	@echo "  make deploy-netlify  Deploy light white web application to Netlify"
@@ -14,6 +16,16 @@ help:
 	@echo "  make test            Run backend test suite"
 	@echo "  make seed            Populate synthetic enterprise demo data (Nexus Retail)"
 	@echo "  make lint            Run linters (Ruff, MyPy)"
+
+setup-ollama:
+	@echo "Setting up open-source Ollama and pulling Llama 3.1..."
+	@which ollama > /dev/null || (echo "Installing Ollama via brew..." && brew install ollama)
+	ollama pull llama3.1
+
+run-llm:
+	@echo "Starting open-source Llama 3.1 model via Ollama..."
+	ollama run llama3.1
+
 
 install:
 	cd backend && pip install -r requirements.txt

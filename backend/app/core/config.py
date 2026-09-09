@@ -50,8 +50,17 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
 
-    # AI Providers
-    DEFAULT_LLM_PROVIDER: str = "openai"
+    # AI Providers (Open Source by default)
+    DEFAULT_LLM_PROVIDER: str = "ollama"  # Options: "ollama", "groq", "vllm", "openai"
+    LOCAL_LLM_BASE_URL: str = "http://localhost:11434/v1"
+    LOCAL_LLM_MODEL: str = "llama3.1"
+    OPEN_SOURCE_EMBEDDING_MODEL: str = "nomic-embed-text"
+
+    # Cloud Open-Source / Hosted Endpoints (Optional)
+    GROQ_API_KEY: str = ""
+    GROQ_MODEL: str = "llama-3.1-70b-versatile"
+    HUGGINGFACE_API_KEY: str = ""
+
     OPENAI_API_KEY: str = ""
     OPENAI_MODEL: str = "gpt-4o"
     OPENAI_EMBEDDING_MODEL: str = "text-embedding-3-small"
@@ -59,8 +68,6 @@ class Settings(BaseSettings):
     ANTHROPIC_API_KEY: str = ""
     ANTHROPIC_MODEL: str = "claude-3-5-sonnet-20241022"
 
-    LOCAL_LLM_BASE_URL: str = "http://localhost:11434/v1"
-    LOCAL_LLM_MODEL: str = "llama3.1"
 
     # Storage
     STORAGE_BACKEND: str = "local"

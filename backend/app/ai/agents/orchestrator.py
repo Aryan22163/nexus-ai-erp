@@ -2,7 +2,9 @@ import uuid
 from decimal import Decimal
 from typing import Any, Dict, List
 from sqlalchemy.ext.asyncio import AsyncSession
+from app.ai.llm_client import open_source_llm
 from app.ai.tools.domain_tools import global_tool_registry
+from app.core.config import settings
 from app.models.approval import ApprovalRequest
 from app.repositories.approval import ApprovalRepository
 from app.schemas.ai import (
@@ -146,14 +148,29 @@ class AICopilotOrchestrator:
                 else:
                     reply = "No matching operational documentation found in the company knowledge base."
 
-        # 6. Default Fallback
+        # 6. Open-Source LLM Query & Business Assistant
         else:
-            intent = "ASSISTANT_QUERY"
-            reply = (
-                "I am **NEXUS AI**, your Business Operating System copilot. "
-                "I can analyze financial reports, query sales pipelines, assess stockout risks, "
-                "search internal knowledge documents, and draft operational transactions with your authorization."
+            intent = "OPEN_SOURCE_LLM"
+            system_prompt = (
+                "You are NEXUS AI, an enterprise-grade AI-native Business Operating System copilot. "
+                "You assist C-suite executives, finance managers, sales leads, and operations managers "
+                "with ERP decisions, inventory, CRM, financial analysis, and standard business procedures. "
+                "Be concise, analytical, professional, and practical."
             )
+            llm_text = await open_source_llm.generate_response(
+                messages=[{"role": "user", "content": request.prompt}],
+                system_prompt=system_prompt,
+            )
+            if llm_text:
+                reply = f"*(Powered by Open-Source {settings.LOCAL_LLM_MODEL})*\n\n{llm_text}"
+            else:
+                reply = (
+                    f"I am **NEXUS AI**, configured to use the open-source **{settings.LOCAL_LLM_MODEL}** model via Ollama.\n\n"
+                    f"To enable real-time local neural generation:\n"
+                    f"1. Run `ollama run {settings.LOCAL_LLM_MODEL}` on your host machine (listening at `{settings.LOCAL_LLM_BASE_URL}`).\n\n"
+                    f"In the meantime, you can ask about **financial performance**, **top customers**, **low stock inventory**, "
+                    f"**company policies (RAG)**, or command me to **draft a purchase order**!"
+                )
 
         return AICopilotResponse(
             reply=reply,
@@ -162,3 +179,4 @@ class AICopilotOrchestrator:
             action_proposal=action_card,
             citations=citations,
         )
+
