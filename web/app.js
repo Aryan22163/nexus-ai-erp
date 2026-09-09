@@ -44,9 +44,9 @@ const enterpriseData = {
     { name: "Titan EyePlus & Omnichannel", segment: "Enterprise", contact: "Retail Tech Lead", credit: "₹3,000,000", churn: "6%", health: "Healthy" },
   ],
   invoices: [
-    { number: "INV-2026-001", customer: "Tata Consumer Products Ltd", issueDate: "2026-09-01", dueDate: "2026-09-30", amount: "₹1,062,000", status: "PAID" },
-    { number: "INV-2026-002", customer: "Reliance Retail Ventures", issueDate: "2026-09-03", dueDate: "2026-10-03", amount: "₹2,450,000", status: "UNPAID" },
-    { number: "INV-2026-003", customer: "Croma (Infiniti Retail Ltd)", issueDate: "2026-09-05", dueDate: "2026-10-05", amount: "₹890,000", status: "PAID" },
+    { number: "INV-2026-001", customer: "Tata Consumer Products Ltd", customerEmail: "accounts.payable@tataconsumer.com", issueDate: "2026-09-01", dueDate: "2026-09-30", amount: "₹1,062,000", status: "PAID", settlementRef: "TXN-HDFC-99214" },
+    { number: "INV-2026-002", customer: "Reliance Retail Ventures", customerEmail: "procurement.finance@relianceretail.com", issueDate: "2026-09-03", dueDate: "2026-10-03", amount: "₹2,450,000", status: "UNPAID" },
+    { number: "INV-2026-003", customer: "Croma (Infiniti Retail Ltd)", customerEmail: "vendor.desk@croma.com", issueDate: "2026-09-05", dueDate: "2026-10-05", amount: "₹890,000", status: "PAID", settlementRef: "TXN-ICICI-88120" },
   ],
   pendingApprovals: [
     {
@@ -317,9 +317,14 @@ function renderSales() {
         </div>
       </td>
       <td>
-        <button class="btn btn-xs btn-outline" onclick="openReceiptModal('${inv.number}')">
-          <i data-lucide="receipt" style="width:13px; height:13px; margin-right:4px;"></i> View Receipt
-        </button>
+        <div style="display:inline-flex; align-items:center; gap:6px;">
+          <button class="btn btn-xs btn-outline" onclick="openReceiptModal('${inv.number}')" title="View & Print Receipt">
+            <i data-lucide="receipt" style="width:13px; height:13px; margin-right:4px;"></i> View Receipt
+          </button>
+          <button class="btn btn-xs btn-secondary" onclick="openEmailInvoiceModal('${inv.number}')" title="Send Invoice & Receipt to Customer Email">
+            <i data-lucide="mail" style="width:13px; height:13px; margin-right:4px;"></i> Email
+          </button>
+        </div>
       </td>
     </tr>
   `).join("");
@@ -829,10 +834,13 @@ window.submitAddSalesOrder = function() {
   const total = qty * price;
   const totalFormatted = "₹" + total.toLocaleString("en-IN");
   const invNumber = "INV-2026-00" + (enterpriseData.invoices.length + 1);
+  const customEmailEl = document.getElementById("so-custom-email");
+  const customEmail = customEmailEl && customEmailEl.value.trim() ? customEmailEl.value.trim() : (customer.toLowerCase().replace(/[^a-z0-9]/g, '') + "@enterprise.in");
 
   const newInvoice = {
     number: invNumber,
     customer: customer,
+    customerEmail: customEmail,
     issueDate: "2026-09-09",
     dueDate: "2026-10-09",
     amount: totalFormatted,
@@ -1073,6 +1081,124 @@ window.openReceiptModal = function(invNumber) {
 window.printReceipt = function() {
   window.print();
 };
+
+// 9. Open Email Invoice / Receipt Modal
+window.openEmailInvoiceModal = function(invNumber) {
+  const inv = enterpriseData.invoices.find(i => i.number === invNumber) || {
+    number: invNumber || "INV-2026-001",
+    customer: "Tata Consumer Products Ltd",
+    customerEmail: "accounts.payable@tataconsumer.com",
+    issueDate: "2026-09-01",
+    dueDate: "2026-09-30",
+    amount: "₹1,062,000",
+    status: "PAID",
+    settlementRef: "TXN-HDFC-99214"
+  };
+
+  // Populate metadata fields
+  const invInput = document.getElementById("email-inv-number");
+  const dispInv = document.getElementById("email-display-inv");
+  const dispCust = document.getElementById("email-display-customer");
+  const emailTo = document.getElementById("email-to-address");
+  const emailSubj = document.getElementById("email-subject");
+  const emailBody = document.getElementById("email-body-text");
+  const emailAttach = document.getElementById("email-attachment-name");
+
+  if (invInput) invInput.value = inv.number;
+  if (dispInv) dispInv.textContent = inv.number;
+  if (dispCust) dispCust.textContent = inv.customer;
+
+  // Resolve custom email: preference to invoice's saved customerEmail, then customer list match
+  let targetEmail = inv.customerEmail || "";
+  if (!targetEmail) {
+    const cust = enterpriseData.customers.find(c => c.name.toLowerCase() === inv.customer.toLowerCase());
+    if (cust && cust.contact && cust.contact.includes("@")) {
+      targetEmail = cust.contact;
+    } else {
+      targetEmail = inv.customer.toLowerCase().replace(/[^a-z0-9]/g, '') + "@enterprise.in";
+    }
+  }
+
+  if (emailTo) emailTo.value = targetEmail;
+  if (emailSubj) emailSubj.value = `Tax Invoice & Settlement Receipt: ${inv.number} - Nexus Retail Pvt Ltd`;
+
+  const isPaid = inv.status === "PAID";
+  const refText = isPaid ? (inv.settlementRef ? ` | Payment Ref: ${inv.settlementRef}` : " | Settled via Bank Wire") : " | Payment Due: 30 Days";
+
+  if (emailBody) {
+    emailBody.value = `Dear ${inv.customer} Accounts & Finance Team,
+
+Please find attached the official computerized Tax Invoice & Settlement Summary issued by Nexus Retail Pvt Ltd.
+
+• Invoice Number: ${inv.number}
+• Total Valuation: ${inv.amount}
+• Issue Date: ${inv.issueDate}
+• Due Date: ${inv.dueDate}
+• Settlement Status: ${inv.status}${refText}
+
+An audited digital copy (PDF) is attached to this transmission. If you need updated statement ledgers or alternate billing breakdowns, reply directly to this notification.
+
+Kind regards,
+Corporate Accounts & Treasury Desk
+Nexus Retail Pvt Ltd • Automated Enterprise Engine`;
+  }
+
+  if (emailAttach) emailAttach.textContent = `Tax_Invoice_${inv.number}.pdf`;
+
+  // Reset submit button state
+  const sendBtn = document.getElementById("btn-send-invoice-email");
+  if (sendBtn) {
+    sendBtn.innerHTML = `<i data-lucide="send"></i><span>Send Email Now</span>`;
+    sendBtn.disabled = false;
+  }
+
+  openModal("modal-email-invoice");
+  setupLucideIcons();
+};
+
+// 10. Submit Email Invoice Dispatch
+window.submitEmailInvoice = function() {
+  const invNumber = document.getElementById("email-inv-number") ? document.getElementById("email-inv-number").value : "";
+  const recipientEmail = document.getElementById("email-to-address") ? document.getElementById("email-to-address").value.trim() : "";
+  const subject = document.getElementById("email-subject") ? document.getElementById("email-subject").value.trim() : "";
+  const sendBtn = document.getElementById("btn-send-invoice-email");
+
+  if (!recipientEmail || !recipientEmail.includes("@") || !recipientEmail.includes(".")) {
+    showToast("Please enter a valid recipient email address.", "danger");
+    return;
+  }
+
+  // Update target invoice's recipient in data store
+  const inv = enterpriseData.invoices.find(i => i.number === invNumber);
+  if (inv) {
+    inv.customerEmail = recipientEmail;
+    inv.lastDispatched = new Date().toISOString();
+  }
+
+  // Animate sending button
+  if (sendBtn) {
+    sendBtn.innerHTML = `<i data-lucide="loader" class="spin" style="width:14px; height:14px; margin-right:4px;"></i><span>Dispatching Email...</span>`;
+    sendBtn.disabled = true;
+    setupLucideIcons();
+  }
+
+  setTimeout(() => {
+    if (sendBtn) {
+      sendBtn.innerHTML = `<i data-lucide="check" style="width:14px; height:14px; margin-right:4px;"></i><span>Dispatched!</span>`;
+    }
+
+    setTimeout(() => {
+      closeModal("modal-email-invoice");
+      if (sendBtn) {
+        sendBtn.innerHTML = `<i data-lucide="send"></i><span>Send Email Now</span>`;
+        sendBtn.disabled = false;
+      }
+      showToast(`Invoice ${invNumber} and receipt PDF successfully dispatched to ${recipientEmail}!`, "success");
+      renderSales();
+    }, 450);
+  }, 750);
+};
+
 
 
 

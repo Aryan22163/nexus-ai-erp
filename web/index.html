@@ -704,6 +704,11 @@
               </select>
             </div>
           </div>
+          <div class="form-group">
+            <label for="so-custom-email">Client Notification / Invoice Dispatch Email</label>
+            <input type="email" id="so-custom-email" placeholder="e.g. accounts.payable@client.com (Optional custom recipient)" />
+            <small style="font-size:0.75rem; color:var(--text-muted); margin-top:3px;">Specify a custom email address to send the generated tax invoice & settlement receipt copy.</small>
+          </div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" onclick="closeModal('modal-add-sales-order')">Cancel</button>
@@ -981,11 +986,80 @@
       </div>
       <div class="modal-footer no-print">
         <button type="button" class="btn btn-secondary" onclick="closeModal('modal-view-receipt')">Close</button>
+        <button type="button" class="btn btn-secondary" onclick="openEmailInvoiceModal(document.getElementById('receipt-inv-num').textContent)">
+          <i data-lucide="mail"></i>
+          <span>Email to Customer</span>
+        </button>
         <button type="button" class="btn btn-primary" onclick="printReceipt()">
           <i data-lucide="printer"></i>
           <span>Print Receipt</span>
         </button>
       </div>
+    </div>
+  </div>
+
+  <!-- Modal 7: Dispatch Invoice via Email -->
+  <div class="modal-backdrop" id="modal-email-invoice">
+    <div class="modal-card" style="max-width: 620px;">
+      <div class="modal-header">
+        <div class="modal-title">
+          <i data-lucide="send" class="text-indigo-600"></i>
+          <span>Dispatch Invoice & Receipt via Email</span>
+        </div>
+        <button class="modal-close-btn" onclick="closeModal('modal-email-invoice')">&times;</button>
+      </div>
+      <form id="form-email-invoice" onsubmit="event.preventDefault(); submitEmailInvoice();">
+        <input type="hidden" id="email-inv-number" />
+        <div class="modal-body">
+          <div class="receipt-meta-grid" style="margin-bottom: 8px;">
+            <div class="receipt-meta-block">
+              <h4>Target Invoice</h4>
+              <p id="email-display-inv" style="font-weight: 700; color: var(--primary);">-</p>
+            </div>
+            <div class="receipt-meta-block">
+              <h4>Customer Account</h4>
+              <p id="email-display-customer" style="font-weight: 600;">-</p>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="email-to-address">Recipient Email (To) *</label>
+            <input type="email" id="email-to-address" placeholder="e.g. accounts.payable@tataconsumer.com" required />
+            <small style="font-size:0.75rem; color:var(--text-muted); margin-top:3px;">You can enter any custom email address to deliver this invoice directly to the person in charge.</small>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="email-cc-address">CC / Compliance (Optional)</label>
+              <input type="text" id="email-cc-address" placeholder="cfo@nexusretail.com, billing@nexusretail.com" />
+            </div>
+            <div class="form-group">
+              <label for="email-subject">Subject Line *</label>
+              <input type="text" id="email-subject" required />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="email-body-text">Email Message & Cover Note *</label>
+            <textarea id="email-body-text" rows="5" style="resize:vertical; font-size:0.85rem; line-height:1.5;"></textarea>
+          </div>
+
+          <div style="background:#F1F5F9; border:1px solid var(--border-medium); border-radius:var(--radius-md); padding:10px 14px; display:flex; align-items:center; justify-content:space-between;">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <i data-lucide="paperclip" class="text-indigo-600" style="width:16px; height:16px;"></i>
+              <span style="font-size:0.82rem; font-weight:600;" id="email-attachment-name">Tax_Invoice_INV-2026-001.pdf</span>
+            </div>
+            <span class="status-pill info" style="font-size:0.72rem;">Automated PDF Seal Attached</span>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('modal-email-invoice')">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="btn-send-invoice-email">
+            <i data-lucide="send"></i>
+            <span>Send Email Now</span>
+          </button>
+        </div>
+      </form>
     </div>
   </div>
 
