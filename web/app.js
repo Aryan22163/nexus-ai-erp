@@ -138,6 +138,52 @@ const enterpriseData = {
       ]
     }
   ],
+  employees: [
+    {
+      code: "EMP-001",
+      name: "Aryan Thakur",
+      email: "admin@nexusretail.com",
+      phone: "+91 98200 00001",
+      dept: "Executive & Management",
+      designation: "Chief Technology Officer & Admin",
+      doj: "2023-01-15",
+      attendance: "PRESENT",
+      salary: 250000
+    },
+    {
+      code: "EMP-002",
+      name: "Anita Roy",
+      email: "finance@nexusretail.com",
+      phone: "+91 98200 00002",
+      dept: "Finance & Accounting",
+      designation: "VP Finance & CFO",
+      doj: "2023-03-01",
+      attendance: "PRESENT",
+      salary: 180000
+    },
+    {
+      code: "EMP-003",
+      name: "Rahul Sharma",
+      email: "sales@nexusretail.com",
+      phone: "+91 98200 00003",
+      dept: "Sales & CRM",
+      designation: "VP Sales & Operations",
+      doj: "2023-05-10",
+      attendance: "PRESENT",
+      salary: 160000
+    },
+    {
+      code: "EMP-004",
+      name: "Neha Patel",
+      email: "neha.patel@nexusretail.com",
+      phone: "+91 98200 00004",
+      dept: "AI/ML Engineering",
+      designation: "Senior AI Research Engineer",
+      doj: "2023-08-20",
+      attendance: "PRESENT",
+      salary: 140000
+    }
+  ],
   finance: {
     bankCash: 5680000,
     accountsReceivable: 3340000,
@@ -913,6 +959,295 @@ function deleteProject(code) {
     showToast(`Project ${code} deleted.`, "warning");
     filterProjects();
   }
+}
+
+// HR & Project Management Sub-Tab Switcher
+let activeHRSubTab = "projects";
+
+function switchHRSubTab(tabName) {
+  activeHRSubTab = tabName;
+
+  ["projects", "kanban", "employees"].forEach(t => {
+    const btn = document.getElementById(`subtab-btn-${t}`);
+    const panel = document.getElementById(`hr-subpanel-${t}`);
+    if (btn) btn.classList.toggle("active", t === tabName);
+    if (panel) panel.style.display = t === tabName ? "block" : "none";
+  });
+
+  const projControls = document.getElementById("projects-subtab-controls");
+  if (projControls) {
+    projControls.style.display = tabName === "employees" ? "none" : "flex";
+  }
+
+  // Update header action buttons dynamically
+  const headerActions = document.getElementById("hr-header-actions");
+  if (headerActions) {
+    if (tabName === "employees") {
+      headerActions.innerHTML = `
+        <button class="btn btn-primary" onclick="openModal('modal-add-employee')">
+          <i data-lucide="user-plus"></i>
+          <span>+ Add Employee</span>
+        </button>
+      `;
+    } else {
+      headerActions.innerHTML = `
+        <button class="btn btn-secondary" onclick="openModal('modal-add-project-task')">
+          <i data-lucide="check-square"></i>
+          <span>+ Quick Task</span>
+        </button>
+        <button class="btn btn-primary" onclick="openModal('modal-add-project')">
+          <i data-lucide="folder-plus"></i>
+          <span>+ Create Project</span>
+        </button>
+      `;
+    }
+    if (window.lucide) lucide.createIcons();
+  }
+
+  if (tabName === "kanban") {
+    renderKanban();
+  } else if (tabName === "employees") {
+    renderEmployees();
+  } else {
+    filterProjects();
+  }
+}
+
+// Render Agile Kanban Board
+function renderKanban() {
+  const container = document.getElementById("kanban-board-view");
+  if (!container) return;
+
+  const searchQuery = (document.getElementById("project-search-input")?.value || "").toLowerCase().trim();
+  const deptFilter = document.getElementById("project-dept-filter")?.value || "ALL";
+
+  // Flatten all tasks with project context
+  const allTasks = [];
+  (enterpriseData.projects || []).forEach(p => {
+    if (deptFilter !== "ALL" && p.department !== deptFilter) return;
+    (p.tasks || []).forEach((t, idx) => {
+      if (searchQuery) {
+        const matches = t.title.toLowerCase().includes(searchQuery) ||
+                        t.assignee.toLowerCase().includes(searchQuery) ||
+                        p.name.toLowerCase().includes(searchQuery) ||
+                        p.code.toLowerCase().includes(searchQuery);
+        if (!matches) return;
+      }
+      allTasks.push({ ...t, projectCode: p.code, projectName: p.name, taskIdx: idx });
+    });
+  });
+
+  const todoTasks = allTasks.filter(t => t.status === "TODO");
+  const inProgressTasks = allTasks.filter(t => t.status === "IN_PROGRESS");
+  const doneTasks = allTasks.filter(t => t.status === "DONE");
+
+  const renderColumnCards = (taskList) => {
+    if (taskList.length === 0) {
+      return `<div style="text-align:center; padding:24px 12px; color:var(--text-muted); font-size:0.8rem; border:1px dashed var(--border-medium); border-radius:var(--radius-md);">No tasks in this lane</div>`;
+    }
+    return taskList.map(t => {
+      const initials = (t.assignee || "AT").split(" ").map(n => n[0]).join("");
+      const priorityClass = t.priority === "URGENT" || t.priority === "CRITICAL" ? "danger" : t.priority === "HIGH" ? "warning" : "info";
+
+      return `
+        <div class="kanban-card">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+            <span class="pill-badge pill-purple" style="font-size:0.65rem; font-weight:700;">${t.projectCode}</span>
+            <span class="status-pill ${priorityClass}" style="font-size:0.65rem;">${t.priority || 'NORMAL'}</span>
+          </div>
+          <div class="kanban-card-title">${t.title}</div>
+          <div style="font-size:0.75rem; color:var(--text-secondary); margin-bottom:8px; line-height:1.3;">
+            <i data-lucide="folder" style="width:11px; height:11px; display:inline; vertical-align:-1px;"></i> ${t.projectName}
+          </div>
+          <div class="kanban-card-footer">
+            <div style="display:flex; align-items:center; gap:6px;">
+              <span class="employee-avatar-circle">${initials}</span>
+              <span style="font-weight:600; color:var(--text-primary); font-size:0.75rem;">${t.assignee}</span>
+            </div>
+            <div style="display:flex; gap:4px;">
+              ${t.status !== 'TODO' ? `<button class="btn btn-secondary btn-sm" style="padding:2px 6px; font-size:0.7rem;" title="Move Back" onclick="moveKanbanTask('${t.projectCode}', ${t.taskIdx}, 'PREV')">←</button>` : ''}
+              ${t.status !== 'DONE' ? `<button class="btn btn-primary btn-sm" style="padding:2px 6px; font-size:0.7rem;" title="Advance" onclick="moveKanbanTask('${t.projectCode}', ${t.taskIdx}, 'NEXT')">→</button>` : ''}
+            </div>
+          </div>
+        </div>
+      `;
+    }).join("");
+  };
+
+  container.innerHTML = `
+    <div class="kanban-column">
+      <div class="kanban-column-header">
+        <div class="kanban-column-title">
+          <span style="width:10px; height:10px; border-radius:50%; background:#F59E0B; display:inline-block;"></span>
+          To Do
+        </div>
+        <span class="kanban-count-pill">${todoTasks.length}</span>
+      </div>
+      <div class="kanban-cards-container">
+        ${renderColumnCards(todoTasks)}
+      </div>
+    </div>
+
+    <div class="kanban-column">
+      <div class="kanban-column-header">
+        <div class="kanban-column-title">
+          <span style="width:10px; height:10px; border-radius:50%; background:#3B82F6; display:inline-block;"></span>
+          In Progress
+        </div>
+        <span class="kanban-count-pill">${inProgressTasks.length}</span>
+      </div>
+      <div class="kanban-cards-container">
+        ${renderColumnCards(inProgressTasks)}
+      </div>
+    </div>
+
+    <div class="kanban-column">
+      <div class="kanban-column-header">
+        <div class="kanban-column-title">
+          <span style="width:10px; height:10px; border-radius:50%; background:#10B981; display:inline-block;"></span>
+          Completed
+        </div>
+        <span class="kanban-count-pill">${doneTasks.length}</span>
+      </div>
+      <div class="kanban-cards-container">
+        ${renderColumnCards(doneTasks)}
+      </div>
+    </div>
+  `;
+
+  if (window.lucide) lucide.createIcons();
+}
+
+function moveKanbanTask(code, taskIdx, direction) {
+  const proj = enterpriseData.projects.find(p => p.code === code);
+  if (proj && proj.tasks && proj.tasks[taskIdx]) {
+    const current = proj.tasks[taskIdx].status;
+    let next = current;
+    if (direction === "NEXT") {
+      next = current === "TODO" ? "IN_PROGRESS" : "DONE";
+    } else {
+      next = current === "DONE" ? "IN_PROGRESS" : "TODO";
+    }
+    proj.tasks[taskIdx].status = next;
+    showToast(`Task moved to ${next}`, "info");
+    renderKanban();
+  }
+}
+
+// Render HR & Employee Directory Table
+function renderEmployees() {
+  const tbody = document.getElementById("employees-table-tbody");
+  if (!tbody) return;
+
+  const employees = enterpriseData.employees || [];
+
+  // Update headcount KPI card
+  const countEl = document.getElementById("kpi-hr-headcount");
+  const attBadge = document.getElementById("kpi-hr-attendance-badge");
+
+  const presentCount = employees.filter(e => e.attendance === "PRESENT").length;
+  if (countEl) countEl.textContent = `${employees.length} Staff`;
+  if (attBadge) attBadge.textContent = `${Math.round((presentCount / employees.length) * 100)}% Present Today`;
+
+  if (employees.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="8" style="text-align:center; padding:30px; color:var(--text-muted);">
+          No employee records found. Click "+ Add Employee" to register staff.
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  tbody.innerHTML = employees.map(e => {
+    const initials = (e.name || "AT").split(" ").map(n => n[0]).join("");
+    const attStatusClass = e.attendance === "PRESENT" ? "success" : "warning";
+
+    return `
+      <tr>
+        <td><strong class="item-bold">${e.code}</strong></td>
+        <td>
+          <div style="display:flex; align-items:center; gap:10px;">
+            <span class="user-avatar-tiny" style="width:28px; height:28px; font-size:0.75rem;">${initials}</span>
+            <div>
+              <span style="font-weight:700; color:var(--text-primary); display:block;">${e.name}</span>
+            </div>
+          </div>
+        </td>
+        <td>
+          <span style="font-weight:600; color:var(--text-primary); display:block;">${e.designation}</span>
+          <small class="text-muted">${e.dept}</small>
+        </td>
+        <td>
+          <div style="font-size:0.8rem;">
+            <a href="mailto:${e.email}" style="color:var(--primary); text-decoration:none;">${e.email}</a>
+            <div style="color:var(--text-muted); font-size:0.75rem;">${e.phone}</div>
+          </div>
+        </td>
+        <td><span style="font-size:0.82rem;">${e.doj}</span></td>
+        <td>
+          <button class="status-pill ${attStatusClass}" style="border:none; cursor:pointer;" onclick="toggleEmployeeAttendance('${e.code}')" title="Click to toggle attendance">
+            ${e.attendance === 'PRESENT' ? '🟢 PRESENT' : '🟡 ON LEAVE'}
+          </button>
+        </td>
+        <td><strong class="item-bold">₹${(e.salary || 120000).toLocaleString('en-IN')}/mo</strong></td>
+        <td>
+          <button class="btn btn-secondary btn-sm" style="font-size:0.72rem; padding:3px 8px;" onclick="toggleEmployeeAttendance('${e.code}')">
+            Toggle Attendance
+          </button>
+        </td>
+      </tr>
+    `;
+  }).join("");
+
+  if (window.lucide) lucide.createIcons();
+}
+
+function toggleEmployeeAttendance(empCode) {
+  const emp = (enterpriseData.employees || []).find(e => e.code === empCode);
+  if (emp) {
+    emp.attendance = emp.attendance === "PRESENT" ? "ON_LEAVE" : "PRESENT";
+    showToast(`Updated ${emp.name}'s attendance status to ${emp.attendance}`, "info");
+    renderEmployees();
+  }
+}
+
+function handleCreateEmployee(event) {
+  event.preventDefault();
+  const firstName = document.getElementById("emp-first-name").value.trim();
+  const lastName = document.getElementById("emp-last-name").value.trim();
+  const name = `${firstName} ${lastName}`;
+  const email = document.getElementById("emp-email").value.trim();
+  const phone = document.getElementById("emp-phone").value.trim();
+  const dept = document.getElementById("emp-dept").value;
+  const designation = document.getElementById("emp-designation").value.trim();
+  const salary = parseFloat(document.getElementById("emp-salary").value) || 120000;
+  const doj = document.getElementById("emp-doj").value;
+  const attendance = document.getElementById("emp-status").value;
+
+  const empCount = (enterpriseData.employees || []).length + 1;
+  const code = `EMP-00${empCount}`;
+
+  const newEmp = {
+    code,
+    name,
+    email,
+    phone,
+    dept,
+    designation,
+    doj,
+    attendance,
+    salary
+  };
+
+  if (!enterpriseData.employees) enterpriseData.employees = [];
+  enterpriseData.employees.push(newEmp);
+
+  closeModal("modal-add-employee");
+  document.getElementById("form-add-employee").reset();
+  showToast(`Employee ${name} (${code}) registered successfully!`, "success");
+  renderEmployees();
 }
 
 // Render Approvals
