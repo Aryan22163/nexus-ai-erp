@@ -6,14 +6,16 @@ Designed with an ultra-clean **white / luminous light theme**, modern glassmorph
 
 ---
 
-## 🚀 Live Local Previews
+## 🚀 Live Production & Local Previews
 
-1. **Served directly via FastAPI backend:**
+1. **Live Production Deployment (Vercel):**
+   - URL: [https://nexus-ai-erp-hazel.vercel.app](https://nexus-ai-erp-hazel.vercel.app)
+2. **Served directly via FastAPI backend:**
    - URL: [http://127.0.0.1:8000/app/](http://127.0.0.1:8000/app/)
-2. **Served via Python static HTTP server:**
+3. **Served via Python static HTTP server:**
    - Run: `make run-web` or `python3 -m http.server 8080 -d web`
    - URL: [http://localhost:8080](http://localhost:8080)
-3. **Served via Next.js frontend:**
+4. **Served via Next.js frontend:**
    - URL: [http://localhost:3000](http://localhost:3000)
 
 ---

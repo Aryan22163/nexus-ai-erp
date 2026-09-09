@@ -2,6 +2,8 @@
 
 > **Next-Generation Enterprise Resource Planning (ERP) + CRM + Finance + Inventory + HR + Projects + Analytics + AI Copilot + LangGraph Autonomous Agents + Predictive Analytics**
 
+> 🌐 **Live Production Vercel App**: [https://nexus-ai-erp-hazel.vercel.app](https://nexus-ai-erp-hazel.vercel.app)
+
 ---
 
 ## 🌟 Vision & Overview
@@ -96,8 +98,10 @@ cp .env.example .env
 docker-compose up --build
 ```
 The application will be accessible at:
-- Frontend UI: `http://localhost:3000`
-- Backend API Docs: `http://localhost:8000/docs`
+- **Live Production App (Vercel)**: [https://nexus-ai-erp-hazel.vercel.app](https://nexus-ai-erp-hazel.vercel.app)
+- **Local Application Server**: `http://127.0.0.1:8000/app/`
+- **Frontend UI (Next.js)**: `http://localhost:3000`
+- **Backend API Docs**: `http://localhost:8000/docs`
 
 ---
 
