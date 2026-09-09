@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NEXUS AI - Enterprise Business Operating System</title>
+  <meta name="description" content="Production-grade AI-native ERP combining CRM, Finance, Inventory, HR, and Autonomous Agents.">
+
+  <!-- Google Fonts: Plus Jakarta Sans & Outfit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Core Vanilla CSS Design System -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <div class="brand-logo">
+          <i data-lucide="sparkles" class="brand-icon"></i>
+        </div>
+        <div class="brand-details">
+          <span class="brand-title">NEXUS AI</span>
+          <span class="brand-tag">ERP 2.0 • OS</span>
+        </div>
+      </div>
+
+      <div class="tenant-selector">
+        <div class="tenant-icon">
+          <i data-lucide="building-2"></i>
+        </div>
+        <div class="tenant-info">
+          <span class="tenant-name">Nexus Retail Pvt Ltd</span>
+          <span class="tenant-badge">Enterprise Cloud</span>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="nav-section-label">OPERATING SYSTEM</div>
+        <a href="#dashboard" class="nav-item active" data-tab="dashboard">
+          <i data-lucide="layout-dashboard"></i>
+          <span>Executive Cockpit</span>
+        </a>
+        <a href="#crm" class="nav-item" data-tab="crm">
+          <i data-lucide="users"></i>
+          <span>CRM & Pipeline</span>
+        </a>
+        <a href="#sales" class="nav-item" data-tab="sales">
+          <i data-lucide="shopping-bag"></i>
+          <span>Sales & Invoicing</span>
+        </a>
+        <a href="#inventory" class="nav-item" data-tab="inventory">
+          <i data-lucide="boxes"></i>
+          <span>Inventory & Stock</span>
+        </a>
+        <a href="#finance" class="nav-item" data-tab="finance">
+          <i data-lucide="wallet"></i>
+          <span>Finance & Accounts</span>
+        </a>
+        <a href="#hr" class="nav-item" data-tab="hr">
+          <i data-lucide="briefcase"></i>
+          <span>HR & Projects</span>
+        </a>
+
+        <div class="nav-section-label">INTELLIGENCE & HITL</div>
+        <a href="#ai-copilot" class="nav-item ai-nav" data-tab="ai-copilot">
+          <i data-lucide="bot"></i>
+          <span>AI Copilot & Agents</span>
+          <span class="pill-badge pill-purple">Live</span>
+        </a>
+        <a href="#approvals" class="nav-item" data-tab="approvals">
+          <i data-lucide="shield-check"></i>
+          <span>HITL Approvals</span>
+          <span class="pill-badge pill-amber" id="pending-approval-count">1</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="user-card">
+          <div class="user-avatar">VA</div>
+          <div class="user-meta">
+            <span class="user-name">Vikram Aditya</span>
+            <span class="user-role">Company Admin</span>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      <!-- Top App Bar -->
+      <header class="topbar">
+        <div class="topbar-search">
+          <i data-lucide="search" class="search-icon"></i>
+          <input type="text" id="global-search" placeholder="Search orders, customers, invoices, accounts, SKUs (Press ⌘K)..." />
+        </div>
+
+        <div class="topbar-actions">
+          <div class="api-status-badge" id="api-status-pill">
+            <span class="status-indicator live"></span>
+            <span id="api-status-text">FastAPI Connected: 8000</span>
+          </div>
+
+          <button class="btn btn-secondary btn-icon" id="quick-refresh-btn" title="Refresh Data">
+            <i data-lucide="refresh-cw"></i>
+          </button>
+
+          <button class="btn btn-primary" id="open-ai-drawer-btn">
+            <i data-lucide="sparkles"></i>
+            <span>Ask AI Copilot</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- Tab View: 1. Executive Cockpit -->
+      <section id="tab-dashboard" class="tab-view active">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Executive Cockpit</h1>
+            <p class="page-subtitle">Real-time cross-enterprise operational health, financial telemetry & AI predictive insights.</p>
+          </div>
+          <div class="header-tools">
+            <span class="date-badge"><i data-lucide="calendar"></i> FY 2025-26 (Q3)</span>
+          </div>
+        </div>
+
+        <!-- 4 Core Executive Metric Cards -->
+        <div class="metrics-grid">
+          <div class="metric-card">
+            <div class="metric-header">
+              <span class="metric-label">Total Revenue</span>
+              <div class="metric-icon-wrap emerald">
+                <i data-lucide="indian-rupee"></i>
+              </div>
+            </div>
+            <div class="metric-value" id="kpi-revenue">₹24.85M</div>
+            <div class="metric-trend positive">
+              <i data-lucide="trending-up"></i>
+              <span>+14.2% vs last month</span>
+            </div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-header">
+              <span class="metric-label">Net Operating Margin</span>
+              <div class="metric-icon-wrap indigo">
+                <i data-lucide="pie-chart"></i>
+              </div>
+            </div>
+            <div class="metric-value" id="kpi-margin">24.6%</div>
+            <div class="metric-trend positive">
+              <i data-lucide="trending-up"></i>
+              <span>+2.3% margin expansion</span>
+            </div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-header">
+              <span class="metric-label">Perpetual Stock Valuation</span>
+              <div class="metric-icon-wrap amber">
+                <i data-lucide="boxes"></i>
+              </div>
+            </div>
+            <div class="metric-value" id="kpi-inventory">₹8.42M</div>
+            <div class="metric-trend neutral">
+              <i data-lucide="box"></i>
+              <span>3 Active Fulfilment Centers</span>
+            </div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-header">
+              <span class="metric-label">Liquid Operating Cash</span>
+              <div class="metric-icon-wrap cyan">
+                <i data-lucide="landmark"></i>
+              </div>
+            </div>
+            <div class="metric-value" id="kpi-cash">₹5.68M</div>
+            <div class="metric-trend positive">
+              <i data-lucide="arrow-down-left"></i>
+              <span>HDFC Current Account</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- AI Predictive Insights Carousel -->
+        <div class="card-section">
+          <div class="section-title-wrap">
+            <div class="section-title-icon purple">
+              <i data-lucide="cpu"></i>
+            </div>
+            <div>
+              <h2 class="section-title">Autonomous Business Insights & Alerts</h2>
+              <p class="section-subtitle">Real-time alerts synthesized by machine learning & cross-module agent telemetry.</p>
+            </div>
+          </div>
+
+          <div class="insights-grid">
+            <div class="insight-card warning">
+              <div class="insight-badge badge-amber">Stockout Warning</div>
+              <h3 class="insight-title">POS-X5-001 Terminal Velocity High</h3>
+              <p class="insight-body">At current confirmed order velocity, Mumbai Central DC stock (100 units) reaches reorder safety threshold in 12 days.</p>
+              <div class="insight-footer">
+                <button class="btn btn-sm btn-outline" onclick="openAIDrawerWithPrompt('Draft a Purchase Order for 50 units of POS-X5-001 with Foxconn')">
+                  Draft PO with AI <i data-lucide="arrow-right"></i>
+                </button>
+              </div>
+            </div>
+
+            <div class="insight-card danger">
+              <div class="insight-badge badge-rose">Churn Risk Alert</div>
+              <h3 class="insight-title">Vijay Sales North Inactivity</h3>
+              <p class="insight-body">Customer segment SMB. 48 days without reorder. RFM churn score spiked to 35% with 1 unresolved hardware inquiry.</p>
+              <div class="insight-footer">
+                <button class="btn btn-sm btn-outline" onclick="switchTab('crm')">
+                  View Customer 360 <i data-lucide="arrow-right"></i>
+                </button>
+              </div>
+            </div>
+
+            <div class="insight-card success">
+              <div class="insight-badge badge-emerald">Revenue Forecast</div>
+              <h3 class="insight-title">Next 30 Days Projected Growth</h3>
+              <p class="insight-body">ML Linear Regression predicts next 30 days revenue of ₹2.85M (+11.8% expansion) if Tata & Croma pipeline closes.</p>
+              <div class="insight-footer">
+                <button class="btn btn-sm btn-outline" onclick="openAIDrawerWithPrompt('Explain the predictive sales forecast model for this quarter')">
+                  Forecast Details <i data-lucide="arrow-right"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Business Transactions & Orders -->
+        <div class="grid-2-col">
+          <div class="panel-card">
+            <div class="panel-header">
+              <h3 class="panel-title">Confirmed Enterprise Sales Orders</h3>
+              <button class="btn btn-xs btn-link" onclick="switchTab('sales')">View All</button>
+            </div>
+            <div class="table-container">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Order #</th>
+                    <th>Customer</th>
+                    <th>Date</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="dashboard-orders-tbody">
+                  <!-- Populated by JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="panel-card">
+            <div class="panel-header">
+              <h3 class="panel-title">Warehouse Inventory Status</h3>
+              <button class="btn btn-xs btn-link" onclick="switchTab('inventory')">Stock Ledger</button>
+            </div>
+            <div class="table-container">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Product / SKU</th>
+                    <th>Warehouse</th>
+                    <th>On Hand</th>
+                    <th>Safety Level</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="dashboard-stock-tbody">
+                  <!-- Populated by JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Tab View: 2. CRM & Customers -->
+      <section id="tab-crm" class="tab-view">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">CRM & Enterprise Relationships</h1>
+            <p class="page-subtitle">Track customer 360 profiles, stakeholder contacts, pipeline opportunities, and churn risks.</p>
+          </div>
+          <div class="header-tools">
+            <button class="btn btn-primary" onclick="alert('New Customer modal ready')">
+              <i data-lucide="user-plus"></i>
+              <span>Add Customer</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="panel-card">
+          <div class="panel-header">
+            <h3 class="panel-title">Client Accounts (Nexus Retail Portfolio)</h3>
+            <div class="filter-controls">
+              <input type="text" class="input-filter" id="crm-filter-input" placeholder="Filter by company name or segment..." />
+            </div>
+          </div>
+          <div class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Client Company</th>
+                  <th>Segment</th>
+                  <th>Primary Contact</th>
+                  <th>Credit Limit</th>
+                  <th>Churn Probability</th>
+                  <th>Health Status</th>
+                </tr>
+              </thead>
+              <tbody id="crm-table-tbody">
+                <!-- Populated by JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- Tab View: 3. Sales & Invoicing -->
+      <section id="tab-sales" class="tab-view">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Sales Orders & Invoicing Lifecycle</h1>
+            <p class="page-subtitle">Manage quotations, confirmed sales contracts, GST tax invoices, and bank settlements.</p>
+          </div>
+          <div class="header-tools">
+            <button class="btn btn-primary" onclick="alert('Create Sales Order modal ready')">
+              <i data-lucide="plus"></i>
+              <span>Create Sales Order</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="panel-card">
+          <div class="panel-header">
+            <h3 class="panel-title">Invoices & Realized Revenue</h3>
+          </div>
+          <div class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Invoice No</th>
+                  <th>Customer</th>
+                  <th>Issue Date</th>
+                  <th>Due Date</th>
+                  <th>Amount (INR)</th>
+                  <th>Settlement Status</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="sales-invoices-tbody">
+                <!-- Populated by JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- Tab View: 4. Inventory & Warehouses -->
+      <section id="tab-inventory" class="tab-view">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Inventory & Stock Ledger</h1>
+            <p class="page-subtitle">Perpetual inventory tracking, multi-warehouse valuation, and movement audit trails.</p>
+          </div>
+          <div class="header-tools">
+            <button class="btn btn-secondary" onclick="alert('Stock Transfer modal ready')">
+              <i data-lucide="arrow-left-right"></i>
+              <span>Transfer Stock</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="panel-card">
+          <div class="panel-header">
+            <h3 class="panel-title">Physical Stock Balances across Fulfilment Centers</h3>
+          </div>
+          <div class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>SKU Code</th>
+                  <th>Product Name</th>
+                  <th>Storage Location</th>
+                  <th>Available Qty</th>
+                  <th>Unit Valuation Rate</th>
+                  <th>Total Asset Value</th>
+                </tr>
+              </thead>
+              <tbody id="inventory-table-tbody">
+                <!-- Populated by JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- Tab View: 5. Finance & Accounts -->
+      <section id="tab-finance" class="tab-view">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Finance & General Ledger</h1>
+            <p class="page-subtitle">Strict double-entry bookkeeping, balanced journal vouchers, and automated financial statements.</p>
+          </div>
+          <div class="header-tools">
+            <button class="btn btn-secondary" onclick="alert('New Journal Entry modal ready')">
+              <i data-lucide="plus"></i>
+              <span>Post Journal Entry</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="grid-2-col">
+          <div class="panel-card">
+            <div class="panel-header">
+              <h3 class="panel-title">5-Pillar Chart of Accounts</h3>
+            </div>
+            <div class="coa-tree" id="coa-tree-view">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+
+          <div class="panel-card">
+            <div class="panel-header">
+              <h3 class="panel-title">Real-Time Financial Balances</h3>
+            </div>
+            <div class="financial-statements-preview" id="financial-preview">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Tab View: 6. HR & Projects -->
+      <section id="tab-hr" class="tab-view">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">HR & Project Operations</h1>
+            <p class="page-subtitle">Employee directory, attendance logs, deliverables, and billable timesheets.</p>
+          </div>
+        </div>
+
+        <div class="panel-card">
+          <div class="panel-header">
+            <h3 class="panel-title">Strategic Projects & Work Items</h3>
+          </div>
+          <div class="projects-container" id="projects-container-view">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+      </section>
+
+      <!-- Tab View: 7. AI Copilot & HITL Approvals -->
+      <section id="tab-ai-copilot" class="tab-view">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">AI Copilot & Autonomous Agents</h1>
+            <p class="page-subtitle">Query company data using natural language, trigger operational tools, and manage action proposals.</p>
+          </div>
+        </div>
+
+        <div class="ai-copilot-workbench">
+          <!-- Chat Thread -->
+          <div class="chat-thread-card">
+            <div class="chat-header">
+              <div class="chat-header-info">
+                <i data-lucide="bot" class="text-indigo-600"></i>
+                <div>
+                  <span class="chat-title">NEXUS AI Enterprise Assistant</span>
+                  <span class="chat-status">Autonomous Agent Online • Safe Read/HITL Mutation</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="chat-messages" id="chat-messages-container">
+              <div class="message-bubble bot">
+                <div class="message-content">
+                  <p>Hello Vikram! I am your <strong>NEXUS AI Copilot</strong>. I have read-only access across your sales pipeline, general ledger, perpetual stock, and enterprise knowledge base. For any critical mutations (like issuing purchase orders or overriding discounts), I formulate an <strong>Action Proposal</strong> for your explicit approval.</p>
+                  <p class="suggestion-intro">What would you like to inspect?</p>
+                  <div class="quick-prompts">
+                    <button class="quick-prompt-btn" onclick="sendPrompt('Show our total revenue and net operating profit this quarter')">
+                      📈 Total Q3 Revenue & Margin
+                    </button>
+                    <button class="quick-prompt-btn" onclick="sendPrompt('Which products are at or below reorder level in our warehouses?')">
+                      📦 Low Stock & Reorder Levels
+                    </button>
+                    <button class="quick-prompt-btn" onclick="sendPrompt('What is our return policy for damaged POS hardware?')">
+                      📄 Vector RAG Return Policy
+                    </button>
+                    <button class="quick-prompt-btn" onclick="sendPrompt('Draft a 15% discount proposal for Tata Consumer Products')">
+                      ⚡ Propose 15% Discount for Tata
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="chat-input-area">
+              <input type="text" id="copilot-input" placeholder="Ask AI Copilot anything about sales, finances, inventory, or policies..." />
+              <button class="btn btn-primary" id="send-copilot-btn">
+                <i data-lucide="send"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Tab View: 8. Approvals -->
+      <section id="tab-approvals" class="tab-view">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Human-in-the-Loop (HITL) Approvals</h1>
+            <p class="page-subtitle">Governance safeguard: Review, approve, or reject proposed business mutations created by AI Agents.</p>
+          </div>
+        </div>
+
+        <div class="approvals-container" id="approvals-container-view">
+          <!-- Populated by JS -->
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Sliding AI Drawer Modal -->
+  <div class="ai-drawer" id="ai-drawer">
+    <div class="ai-drawer-header">
+      <div class="flex items-center gap-2">
+        <i data-lucide="sparkles" class="text-indigo-600"></i>
+        <span class="font-bold">Quick AI Assistant</span>
+      </div>
+      <button class="btn-close" id="close-ai-drawer-btn">&times;</button>
+    </div>
+    <div class="ai-drawer-body" id="ai-drawer-messages">
+      <div class="message-bubble bot">
+        <p>Ask quick questions or request real-time calculations from any screen.</p>
+      </div>
+    </div>
+    <div class="ai-drawer-footer">
+      <input type="text" id="drawer-input" placeholder="Ask question..." />
+      <button class="btn btn-primary" id="drawer-send-btn"><i data-lucide="arrow-right"></i></button>
+    </div>
+  </div>
+
+  <!-- Notification Toast Container -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- Core JavaScript Application Logic -->
+  <script src="app.js"></script>
+</body>
+</html>
