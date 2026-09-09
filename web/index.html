@@ -88,9 +88,9 @@
 
       <div class="sidebar-footer">
         <div class="user-card">
-          <div class="user-avatar">VA</div>
+          <div class="user-avatar">AT</div>
           <div class="user-meta">
-            <span class="user-name">Vikram Aditya</span>
+            <span class="user-name">Aryan Thakur</span>
             <span class="user-role">Company Admin</span>
           </div>
         </div>
@@ -489,18 +489,110 @@
       <section id="tab-hr" class="tab-view">
         <div class="page-header">
           <div>
-            <h1 class="page-title">HR & Project Operations</h1>
-            <p class="page-subtitle">Employee directory, attendance logs, deliverables, and billable timesheets.</p>
+            <h1 class="page-title">HR & Project Management</h1>
+            <p class="page-subtitle">Strategic project portfolio, milestone velocity, deliverables tracking, team resource allocation, and real-time task operations.</p>
+          </div>
+          <div class="header-actions">
+            <button class="btn btn-secondary" onclick="openModal('modal-add-project-task')">
+              <i data-lucide="check-square"></i>
+              <span>+ Quick Task</span>
+            </button>
+            <button class="btn btn-primary" onclick="openModal('modal-add-project')">
+              <i data-lucide="folder-plus"></i>
+              <span>+ Create Project</span>
+            </button>
           </div>
         </div>
 
-        <div class="panel-card">
-          <div class="panel-header">
-            <h3 class="panel-title">Strategic Projects & Work Items</h3>
+        <!-- Project KPI Cards -->
+        <div class="kpi-grid mb-6">
+          <div class="kpi-card">
+            <div class="kpi-header">
+              <span class="kpi-title">Active Projects</span>
+              <div class="kpi-icon-box bg-indigo-50 text-indigo-600">
+                <i data-lucide="layers"></i>
+              </div>
+            </div>
+            <div class="kpi-value" id="kpi-projects-count">4</div>
+            <div class="kpi-footer">
+              <span class="kpi-trend positive" id="kpi-projects-status-badge">100% In Motion</span>
+              <span class="kpi-caption">across engineering &amp; ops</span>
+            </div>
           </div>
-          <div class="projects-container" id="projects-container-view">
-            <!-- Populated by JS -->
+
+          <div class="kpi-card">
+            <div class="kpi-header">
+              <span class="kpi-title">Capital Budget &amp; Spent</span>
+              <div class="kpi-icon-box bg-emerald-50 text-emerald-600">
+                <i data-lucide="pie-chart"></i>
+              </div>
+            </div>
+            <div class="kpi-value" id="kpi-projects-budget">₹4.85M</div>
+            <div class="kpi-footer">
+              <span class="kpi-trend positive" id="kpi-projects-spent-badge">₹1.82M Spent</span>
+              <span class="kpi-caption" id="kpi-projects-burn-rate">(37.5% Utilized)</span>
+            </div>
           </div>
+
+          <div class="kpi-card">
+            <div class="kpi-header">
+              <span class="kpi-title">Milestone Velocity</span>
+              <div class="kpi-icon-box bg-blue-50 text-blue-600">
+                <i data-lucide="trending-up"></i>
+              </div>
+            </div>
+            <div class="kpi-value" id="kpi-projects-velocity">78%</div>
+            <div class="kpi-footer">
+              <span class="kpi-trend positive" id="kpi-projects-tasks-completed">14 of 18 Tasks Done</span>
+              <span class="kpi-caption">sprint deliverables</span>
+            </div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-header">
+              <span class="kpi-title">Team Leads &amp; Staff</span>
+              <div class="kpi-icon-box bg-purple-50 text-purple-600">
+                <i data-lucide="users"></i>
+              </div>
+            </div>
+            <div class="kpi-value" id="kpi-projects-leads-count">4 Leads</div>
+            <div class="kpi-footer">
+              <span class="kpi-trend neutral">Aryan Thakur (CTO)</span>
+              <span class="kpi-caption">+ Anita, Rahul, Neha</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Filter & Search Controls Bar -->
+        <div class="project-filter-bar">
+          <div class="project-filter-tabs">
+            <button class="project-filter-btn active" data-status="ALL" onclick="setProjectStatusFilter('ALL', this)">All Projects</button>
+            <button class="project-filter-btn" data-status="ACTIVE" onclick="setProjectStatusFilter('ACTIVE', this)">Active</button>
+            <button class="project-filter-btn" data-status="IN_PROGRESS" onclick="setProjectStatusFilter('IN_PROGRESS', this)">In Progress</button>
+            <button class="project-filter-btn" data-status="PLANNING" onclick="setProjectStatusFilter('PLANNING', this)">Planning</button>
+            <button class="project-filter-btn" data-status="COMPLETED" onclick="setProjectStatusFilter('COMPLETED', this)">Completed</button>
+          </div>
+
+          <div class="project-filter-controls">
+            <select id="project-dept-filter" class="table-select" onchange="filterProjects()">
+              <option value="ALL">All Departments</option>
+              <option value="Operations & Logistics">Operations & Logistics</option>
+              <option value="AI/ML Engineering">AI/ML Engineering</option>
+              <option value="Finance & Core">Finance & Core</option>
+              <option value="Security & Compliance">Security & Compliance</option>
+              <option value="Supply Chain">Supply Chain</option>
+            </select>
+
+            <div class="project-search-wrapper">
+              <i data-lucide="search" style="width:14px; height:14px; color:var(--text-muted);"></i>
+              <input type="text" id="project-search-input" placeholder="Search projects or tasks..." oninput="filterProjects()" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Projects Grid Container -->
+        <div class="projects-grid" id="projects-container-view">
+          <!-- Populated dynamically by renderHR() in app.js -->
         </div>
       </section>
 
@@ -538,7 +630,7 @@
             <div class="chat-messages" id="chat-messages-container">
               <div class="message-bubble bot">
                 <div class="message-content">
-                  <p>Hello Vikram! I am your <strong>NEXUS AI Copilot</strong>. I have read-only access across your sales pipeline, general ledger, perpetual stock, and enterprise knowledge base. For any critical mutations (like issuing purchase orders or overriding discounts), I formulate an <strong>Action Proposal</strong> for your explicit approval.</p>
+                  <p>Hello Aryan! I am your <strong>NEXUS AI Copilot</strong>. I have read-only access across your sales pipeline, general ledger, perpetual stock, and enterprise knowledge base. For any critical mutations (like issuing purchase orders or overriding discounts), I formulate an <strong>Action Proposal</strong> for your explicit approval.</p>
                   <p class="suggestion-intro">What would you like to inspect?</p>
                   <div class="quick-prompts">
                     <button class="quick-prompt-btn" onclick="sendPrompt('Show our total revenue and net operating profit this quarter')">
@@ -1387,6 +1479,251 @@
           <button type="submit" class="btn btn-primary" id="btn-send-invoice-email">
             <i data-lucide="send"></i>
             <span>Send Email Now</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 9: Create New Project -->
+  <div class="modal-backdrop" id="modal-add-project">
+    <div class="modal-card" style="max-width: 650px;">
+      <div class="modal-header">
+        <div class="modal-title">
+          <i data-lucide="folder-plus" class="text-indigo-600"></i>
+          <h3>Create Strategic Project</h3>
+        </div>
+        <button class="modal-close-btn" onclick="closeModal('modal-add-project')">&times;</button>
+      </div>
+      <form id="form-add-project" onsubmit="handleCreateProject(event)">
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="new-project-name">Project Title *</label>
+            <input type="text" id="new-project-name" placeholder="e.g. Automated Warehouse Robot Dispatch Engine" required />
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="new-project-code">Project Code *</label>
+              <input type="text" id="new-project-code" placeholder="PRJ-AI-2026" required />
+            </div>
+            <div class="form-group">
+              <label for="new-project-dept">Department *</label>
+              <select id="new-project-dept" required>
+                <option value="Operations & Logistics">Operations & Logistics</option>
+                <option value="AI/ML Engineering" selected>AI/ML Engineering</option>
+                <option value="Finance & Core">Finance & Core</option>
+                <option value="Security & Compliance">Security & Compliance</option>
+                <option value="Supply Chain">Supply Chain</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="new-project-lead">Project Lead / Owner *</label>
+              <select id="new-project-lead" required>
+                <option value="Aryan Thakur" selected>Aryan Thakur (Company Admin / CTO)</option>
+                <option value="Anita Roy">Anita Roy (Finance Lead / CFO)</option>
+                <option value="Rahul Sharma">Rahul Sharma (VP Sales / Ops)</option>
+                <option value="Neha Patel">Neha Patel (Senior Engineer)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="new-project-priority">Priority Level *</label>
+              <select id="new-project-priority" required>
+                <option value="CRITICAL">🔴 Critical (P0)</option>
+                <option value="HIGH" selected>🟠 High (P1)</option>
+                <option value="MEDIUM">🔵 Medium (P2)</option>
+                <option value="LOW">⚪ Low (P3)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="new-project-budget">Capital Budget (INR ₹) *</label>
+              <input type="number" id="new-project-budget" min="10000" step="10000" placeholder="1200000" required />
+            </div>
+            <div class="form-group">
+              <label for="new-project-spent">Initial Spent (INR ₹)</label>
+              <input type="number" id="new-project-spent" min="0" step="5000" placeholder="0" value="0" />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="new-project-status">Initial Status *</label>
+              <select id="new-project-status" required>
+                <option value="ACTIVE" selected>ACTIVE</option>
+                <option value="IN_PROGRESS">IN_PROGRESS</option>
+                <option value="PLANNING">PLANNING</option>
+                <option value="ON_HOLD">ON_HOLD</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="new-project-deadline">Target Deadline *</label>
+              <input type="date" id="new-project-deadline" required />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="new-project-desc">Scope & Objective</label>
+            <textarea id="new-project-desc" rows="2" placeholder="Define clear deliverables, business objectives, and success criteria..."></textarea>
+          </div>
+
+          <div style="background: var(--bg-hover); border: 1px dashed var(--border-medium); border-radius: var(--radius-md); padding: 12px 14px;">
+            <label style="font-size:0.78rem; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px; display:block;">Initial Deliverable Task (Optional)</label>
+            <div class="form-row" style="margin-bottom:0;">
+              <div class="form-group" style="flex:2; margin-bottom:0;">
+                <input type="text" id="new-project-initial-task" placeholder="e.g. Design System Architecture & Schema" />
+              </div>
+              <div class="form-group" style="flex:1; margin-bottom:0;">
+                <select id="new-project-task-assignee">
+                  <option value="Aryan Thakur">Aryan Thakur</option>
+                  <option value="Anita Roy">Anita Roy</option>
+                  <option value="Rahul Sharma">Rahul Sharma</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('modal-add-project')">Cancel</button>
+          <button type="submit" class="btn btn-primary">
+            <i data-lucide="check"></i>
+            <span>Create Project</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 10: Add Task to Project -->
+  <div class="modal-backdrop" id="modal-add-project-task">
+    <div class="modal-card" style="max-width: 520px;">
+      <div class="modal-header">
+        <div class="modal-title">
+          <i data-lucide="check-square" class="text-indigo-600"></i>
+          <h3>Add Deliverable Task</h3>
+        </div>
+        <button class="modal-close-btn" onclick="closeModal('modal-add-project-task')">&times;</button>
+      </div>
+      <form id="form-add-project-task" onsubmit="handleCreateProjectTask(event)">
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="task-target-project">Target Project *</label>
+            <select id="task-target-project" required>
+              <!-- Populated dynamically -->
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="task-title">Deliverable Title *</label>
+            <input type="text" id="task-title" placeholder="e.g. Implement Webhook Retry Queue & Circuit Breaker" required />
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="task-assignee">Assigned Lead *</label>
+              <select id="task-assignee" required>
+                <option value="Aryan Thakur" selected>Aryan Thakur</option>
+                <option value="Anita Roy">Anita Roy</option>
+                <option value="Rahul Sharma">Rahul Sharma</option>
+                <option value="Neha Patel">Neha Patel</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="task-priority">Priority *</label>
+              <select id="task-priority" required>
+                <option value="HIGH" selected>High</option>
+                <option value="URGENT">Urgent / Critical</option>
+                <option value="MEDIUM">Medium</option>
+                <option value="LOW">Low</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="task-status">Initial Status *</label>
+              <select id="task-status" required>
+                <option value="TODO" selected>TODO</option>
+                <option value="IN_PROGRESS">IN_PROGRESS</option>
+                <option value="DONE">DONE</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="task-est-hours">Estimated Hours</label>
+              <input type="number" id="task-est-hours" min="1" max="500" placeholder="16" value="20" />
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('modal-add-project-task')">Cancel</button>
+          <button type="submit" class="btn btn-primary">
+            <i data-lucide="plus"></i>
+            <span>Add Deliverable</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 11: Log Project Expense -->
+  <div class="modal-backdrop" id="modal-log-project-expense">
+    <div class="modal-card" style="max-width: 500px;">
+      <div class="modal-header">
+        <div class="modal-title">
+          <i data-lucide="receipt" class="text-indigo-600"></i>
+          <h3>Log Project Expenditure</h3>
+        </div>
+        <button class="modal-close-btn" onclick="closeModal('modal-log-project-expense')">&times;</button>
+      </div>
+      <form id="form-log-project-expense" onsubmit="handleLogProjectExpense(event)">
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="expense-target-project">Project *</label>
+            <select id="expense-target-project" required>
+              <!-- Populated dynamically -->
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="expense-amount">Expenditure Amount (INR ₹) *</label>
+            <input type="number" id="expense-amount" min="100" step="500" placeholder="45000" required />
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="expense-category">Expense Category *</label>
+              <select id="expense-category" required>
+                <option value="Cloud & GPU Compute">Cloud & GPU Compute</option>
+                <option value="Hardware & Sensors">Hardware & Sensors</option>
+                <option value="Software Licenses">Software Licenses</option>
+                <option value="Consulting & Audit">Consulting & Audit</option>
+                <option value="Operations & Travel">Operations & Travel</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="expense-date">Expense Date *</label>
+              <input type="date" id="expense-date" required />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="expense-narration">Narration / Vendor Memo *</label>
+            <input type="text" id="expense-narration" placeholder="e.g. AWS Bedrock GPU Inference Cluster invoice" required />
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('modal-log-project-expense')">Cancel</button>
+          <button type="submit" class="btn btn-primary">
+            <i data-lucide="plus-circle"></i>
+            <span>Record Expense</span>
           </button>
         </div>
       </form>

@@ -65,13 +65,76 @@ const enterpriseData = {
     {
       name: "Mumbai DC Automated Dimensioner Integration",
       code: "PRJ-WMS-2026",
-      budget: "₹1,500,000",
-      spent: "₹420,000",
+      department: "Operations & Logistics",
+      lead: "Aryan Thakur",
+      priority: "HIGH",
+      budget: 1500000,
+      spent: 420000,
       progress: 68,
       status: "ACTIVE",
+      deadline: "2026-10-15",
+      description: "Deploy automated parcel dimensioners, smart weighbridges, and real-time stock ledger webhooks at Mumbai Distribution Hub.",
       tasks: [
-        { title: "Deploy Smart Weighing Scale Drivers", assignee: "Vikram Aditya", status: "DONE" },
-        { title: "Validate Real-Time Stock Ledger Webhook Synchronization", assignee: "Vikram Aditya", status: "IN_PROGRESS" }
+        { title: "Deploy Smart Weighing Scale Edge Drivers", assignee: "Aryan Thakur", status: "DONE", priority: "HIGH" },
+        { title: "Validate Real-Time Stock Ledger Webhook Synchronization", assignee: "Aryan Thakur", status: "IN_PROGRESS", priority: "URGENT" },
+        { title: "Calibrate Volumetric Optical Sensors on Conveyor #3", assignee: "Anita Roy", status: "DONE", priority: "MEDIUM" },
+        { title: "Warehouse Gateway TLS 1.3 Handshake Audit", assignee: "Rahul Sharma", status: "TODO", priority: "LOW" }
+      ]
+    },
+    {
+      name: "Real-Time Sales & Customer Churn Forecaster Engine",
+      code: "PRJ-AI-2026",
+      department: "AI/ML Engineering",
+      lead: "Aryan Thakur",
+      priority: "CRITICAL",
+      budget: 1200000,
+      spent: 650000,
+      progress: 75,
+      status: "ACTIVE",
+      deadline: "2026-09-30",
+      description: "Build ordinary least squares sales trend extrapolation, spending anomaly detection, and automated churn retention dispatcher.",
+      tasks: [
+        { title: "Train Random Forest & Gradient Boosted Sales Regressors", assignee: "Aryan Thakur", status: "DONE", priority: "HIGH" },
+        { title: "Integrate Z-Score Expense Anomaly Detector", assignee: "Anita Roy", status: "DONE", priority: "MEDIUM" },
+        { title: "Implement Real-time Customer Churn Dispatch System", assignee: "Aryan Thakur", status: "DONE", priority: "HIGH" },
+        { title: "Deploy Local Ollama LLM Decision Agent Pipeline", assignee: "Neha Patel", status: "IN_PROGRESS", priority: "URGENT" }
+      ]
+    },
+    {
+      name: "Automated GST Multi-Currency Invoicing & Payment Gateways",
+      code: "PRJ-FIN-2026",
+      department: "Finance & Core",
+      lead: "Anita Roy",
+      priority: "HIGH",
+      budget: 950000,
+      spent: 380000,
+      progress: 50,
+      status: "IN_PROGRESS",
+      deadline: "2026-11-20",
+      description: "Compliance upgrade for tax invoice auto-generation, QR code embedding, custom recipient email dispatch, and settlement ledger auto-updates.",
+      tasks: [
+        { title: "Implement IRN QR Code Auto-Generation & Stamp", assignee: "Anita Roy", status: "DONE", priority: "HIGH" },
+        { title: "Configure Razorpay / Stripe Webhook Handlers", assignee: "Rahul Sharma", status: "IN_PROGRESS", priority: "HIGH" },
+        { title: "Automated Email Invoice Dispatcher with PDF Seal", assignee: "Aryan Thakur", status: "DONE", priority: "MEDIUM" },
+        { title: "Multi-ledger Reconciliation Batch Cron Service", assignee: "Anita Roy", status: "TODO", priority: "MEDIUM" }
+      ]
+    },
+    {
+      name: "ISO-27001 SOC2 Type II Enterprise Security & Access Control",
+      code: "PRJ-SEC-2026",
+      department: "Security & Compliance",
+      lead: "Rahul Sharma",
+      priority: "MEDIUM",
+      budget: 1200000,
+      spent: 370000,
+      progress: 33,
+      status: "PLANNING",
+      deadline: "2026-12-15",
+      description: "Implement role-based access control (RBAC), multi-tenant data encryption at rest, and automated disaster recovery drills.",
+      tasks: [
+        { title: "Role-Based Access Control (RBAC) Audit Trail Logging", assignee: "Aryan Thakur", status: "DONE", priority: "HIGH" },
+        { title: "Automated Disaster Recovery Replication Drills", assignee: "Rahul Sharma", status: "IN_PROGRESS", priority: "MEDIUM" },
+        { title: "End-to-End Encryption at Rest for Customer PII", assignee: "Neha Patel", status: "TODO", priority: "HIGH" }
       ]
     }
   ],
@@ -482,32 +545,374 @@ function renderFinance() {
   }
 }
 
-// Render HR & Projects
-function renderHR() {
+// Globals & Handlers for HR & Project Management
+let projectStatusFilter = "ALL";
+
+function setProjectStatusFilter(status, btnEl) {
+  projectStatusFilter = status;
+  document.querySelectorAll(".project-filter-btn").forEach(b => b.classList.remove("active"));
+  if (btnEl) btnEl.classList.add("active");
+  filterProjects();
+}
+
+function filterProjects() {
+  const deptFilter = document.getElementById("project-dept-filter")?.value || "ALL";
+  const searchQuery = (document.getElementById("project-search-input")?.value || "").toLowerCase().trim();
+  renderHR(projectStatusFilter, deptFilter, searchQuery);
+}
+
+// Render HR & Projects Tab
+function renderHR(statusFilter = "ALL", deptFilter = "ALL", searchQuery = "") {
   const container = document.getElementById("projects-container-view");
   if (!container) return;
 
-  container.innerHTML = enterpriseData.projects.map(p => `
-    <div style="padding: 16px 20px; border-bottom: 1px solid var(--border-light);">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-        <h4 style="font-weight: 700;">${p.name} <span class="text-muted" style="font-size: 0.8rem;">(${p.code})</span></h4>
-        <span class="status-pill success">${p.status}</span>
+  // Filter projects
+  let filtered = (enterpriseData.projects || []);
+
+  if (statusFilter !== "ALL") {
+    filtered = filtered.filter(p => p.status === statusFilter);
+  }
+  if (deptFilter !== "ALL") {
+    filtered = filtered.filter(p => p.department === deptFilter);
+  }
+  if (searchQuery) {
+    filtered = filtered.filter(p =>
+      p.name.toLowerCase().includes(searchQuery) ||
+      p.code.toLowerCase().includes(searchQuery) ||
+      (p.description || "").toLowerCase().includes(searchQuery) ||
+      (p.tasks || []).some(t => t.title.toLowerCase().includes(searchQuery) || t.assignee.toLowerCase().includes(searchQuery))
+    );
+  }
+
+  // Populate top KPI cards
+  const allProjects = enterpriseData.projects || [];
+  const totalCount = allProjects.length;
+  const totalBudget = allProjects.reduce((acc, p) => acc + (typeof p.budget === "number" ? p.budget : parseFloat(String(p.budget).replace(/[^0-9.]/g, "")) || 0), 0);
+  const totalSpent = allProjects.reduce((acc, p) => acc + (typeof p.spent === "number" ? p.spent : parseFloat(String(p.spent).replace(/[^0-9.]/g, "")) || 0), 0);
+
+  let totalTasks = 0;
+  let doneTasks = 0;
+  allProjects.forEach(p => {
+    (p.tasks || []).forEach(t => {
+      totalTasks++;
+      if (t.status === "DONE") doneTasks++;
+    });
+  });
+  const milestoneVelocity = totalTasks > 0 ? Math.round((doneTasks / totalTasks) * 100) : 0;
+  const utilPct = totalBudget > 0 ? ((totalSpent / totalBudget) * 100).toFixed(1) : 0;
+
+  const countEl = document.getElementById("kpi-projects-count");
+  const budgetEl = document.getElementById("kpi-projects-budget");
+  const spentBadge = document.getElementById("kpi-projects-spent-badge");
+  const burnRateEl = document.getElementById("kpi-projects-burn-rate");
+  const velocityEl = document.getElementById("kpi-projects-velocity");
+  const tasksCompletedEl = document.getElementById("kpi-projects-tasks-completed");
+
+  if (countEl) countEl.textContent = totalCount;
+  if (budgetEl) budgetEl.textContent = "₹" + (totalBudget / 1000000).toFixed(2) + "M";
+  if (spentBadge) spentBadge.textContent = "₹" + (totalSpent / 1000000).toFixed(2) + "M Spent";
+  if (burnRateEl) burnRateEl.textContent = `(${utilPct}% Utilized)`;
+  if (velocityEl) velocityEl.textContent = milestoneVelocity + "%";
+  if (tasksCompletedEl) tasksCompletedEl.textContent = `${doneTasks} of ${totalTasks} Tasks Done`;
+
+  // Render Projects Grid Cards
+  if (filtered.length === 0) {
+    container.innerHTML = `
+      <div style="grid-column: 1 / -1; text-align: center; padding: 48px 24px; background: var(--card-bg); border-radius: var(--radius-lg); border: 1px dashed var(--border-medium);">
+        <i data-lucide="folder-search" style="width: 40px; height: 40px; color: var(--text-muted); margin-bottom: 12px;"></i>
+        <h4 style="font-weight: 700; font-size: 1.1rem; margin-bottom: 4px;">No Projects Found</h4>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 16px;">No project records match the active status or department filter.</p>
+        <button class="btn btn-secondary btn-sm" onclick="setProjectStatusFilter('ALL', document.querySelector('[data-status=ALL]'))">Reset Filters</button>
       </div>
-      <div style="font-size: 0.82rem; color: var(--text-secondary); margin-bottom: 12px;">
-        Budget: <strong class="item-bold">${p.budget}</strong> | Spent: <strong class="item-bold">${p.spent}</strong> | Progress: <strong>${p.progress}%</strong>
-      </div>
-      <div style="background: #E2E8F0; border-radius: 999px; height: 7px; overflow: hidden; margin-bottom: 16px;">
-        <div style="width: ${p.progress}%; background: var(--primary); height: 100%;"></div>
-      </div>
-      <h5 style="font-size: 0.78rem; text-transform: uppercase; font-weight: 700; color: var(--text-muted); margin-bottom: 8px;">Deliverable Tasks</h5>
-      ${p.tasks.map(t => `
-        <div style="display: flex; justify-content: space-between; padding: 6px 0; font-size: 0.82rem; border-top: 1px dashed var(--border-light);">
-          <span>${t.title} <small class="text-muted">(${t.assignee})</small></span>
-          <span class="status-pill ${t.status === 'DONE' ? 'success' : 'warning'}">${t.status}</span>
+    `;
+    if (window.lucide) lucide.createIcons();
+    return;
+  }
+
+  container.innerHTML = filtered.map(p => {
+    const pTotal = (p.tasks || []).length;
+    const pDone = (p.tasks || []).filter(t => t.status === 'DONE').length;
+    const progressPct = pTotal > 0 ? Math.round((pDone / pTotal) * 100) : (p.progress || 0);
+    p.progress = progressPct;
+
+    const numBudget = typeof p.budget === 'number' ? p.budget : parseFloat(String(p.budget).replace(/[^0-9.]/g, "")) || 0;
+    const numSpent = typeof p.spent === 'number' ? p.spent : parseFloat(String(p.spent).replace(/[^0-9.]/g, "")) || 0;
+    const remaining = Math.max(0, numBudget - numSpent);
+
+    const priorityBadge = p.priority === 'CRITICAL' ? '<span class="status-pill danger">CRITICAL</span>' :
+                          p.priority === 'HIGH' ? '<span class="status-pill warning">HIGH</span>' :
+                          '<span class="status-pill info">MEDIUM</span>';
+
+    return `
+      <div class="project-card">
+        <div class="project-card-header">
+          <div>
+            <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px; flex-wrap:wrap;">
+              <span class="pill-badge pill-purple" style="font-size:0.7rem; font-weight:700;">${p.code}</span>
+              <span class="pill-badge" style="background:#F1F5F9; color:#475569; font-size:0.7rem;">${p.department || 'Operations'}</span>
+              ${priorityBadge}
+            </div>
+            <h3 class="project-card-title">${p.name}</h3>
+          </div>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <select class="pill-select" style="font-size:0.75rem; padding:4px 8px;" onchange="updateProjectStatus('${p.code}', this.value)">
+              <option value="ACTIVE" ${p.status === 'ACTIVE' ? 'selected' : ''}>ACTIVE</option>
+              <option value="IN_PROGRESS" ${p.status === 'IN_PROGRESS' ? 'selected' : ''}>IN_PROGRESS</option>
+              <option value="PLANNING" ${p.status === 'PLANNING' ? 'selected' : ''}>PLANNING</option>
+              <option value="ON_HOLD" ${p.status === 'ON_HOLD' ? 'selected' : ''}>ON_HOLD</option>
+              <option value="COMPLETED" ${p.status === 'COMPLETED' ? 'selected' : ''}>COMPLETED</option>
+            </select>
+            <button class="icon-btn-danger" title="Delete Project" onclick="deleteProject('${p.code}')">
+              <i data-lucide="trash-2" style="width:14px; height:14px;"></i>
+            </button>
+          </div>
         </div>
-      `).join("")}
-    </div>
-  `).join("");
+
+        <p class="project-card-desc">${p.description || 'Enterprise strategic deliverable tracking and resource allocation.'}</p>
+
+        <!-- Progress Gauge -->
+        <div style="margin-bottom:14px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.8rem; font-weight:600; margin-bottom:6px;">
+            <span style="color:var(--text-secondary);">Milestone Progress (${pDone}/${pTotal} Deliverables)</span>
+            <span class="text-indigo-600" style="font-weight:700;">${progressPct}%</span>
+          </div>
+          <div class="project-progress-bar">
+            <div class="project-progress-fill" style="width: ${progressPct}%;"></div>
+          </div>
+        </div>
+
+        <!-- Budget & Meta Grid -->
+        <div class="project-meta-grid">
+          <div class="project-meta-item">
+            <span class="meta-label">Capital Budget</span>
+            <span class="meta-val">₹${numBudget.toLocaleString('en-IN')}</span>
+          </div>
+          <div class="project-meta-item">
+            <span class="meta-label">Total Spent</span>
+            <span class="meta-val text-amber-600">₹${numSpent.toLocaleString('en-IN')}</span>
+          </div>
+          <div class="project-meta-item">
+            <span class="meta-label">Remaining Funds</span>
+            <span class="meta-val text-emerald-600">₹${remaining.toLocaleString('en-IN')}</span>
+          </div>
+          <div class="project-meta-item">
+            <span class="meta-label">Project Owner</span>
+            <span class="meta-val" style="display:flex; align-items:center; gap:4px;">
+              <span class="user-avatar-tiny">${(p.lead || 'AT').split(' ').map(n=>n[0]).join('')}</span>
+              ${p.lead || 'Aryan Thakur'}
+            </span>
+          </div>
+        </div>
+
+        <!-- Deliverable Tasks Section -->
+        <div class="project-tasks-section">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+            <h4 style="font-size:0.78rem; text-transform:uppercase; font-weight:700; letter-spacing:0.04em; color:var(--text-muted);">Deliverable Tasks (${pTotal})</h4>
+            <button class="btn btn-secondary btn-sm" style="font-size:0.75rem; padding:3px 8px;" onclick="openAddProjectTaskModal('${p.code}')">
+              <i data-lucide="plus" style="width:12px; height:12px;"></i> + Task
+            </button>
+          </div>
+
+          <div class="project-tasks-list">
+            ${(p.tasks || []).map((t, idx) => `
+              <div class="project-task-row ${t.status === 'DONE' ? 'task-done' : ''}">
+                <div style="display:flex; align-items:center; gap:10px;">
+                  <button class="task-checkbox-btn ${t.status === 'DONE' ? 'checked' : ''}" onclick="toggleProjectTaskStatus('${p.code}', ${idx})" title="Toggle Completion">
+                    <i data-lucide="${t.status === 'DONE' ? 'check-square' : t.status === 'IN_PROGRESS' ? 'clock' : 'square'}" style="width:16px; height:16px;"></i>
+                  </button>
+                  <div>
+                    <span class="task-title-text">${t.title}</span>
+                    <div style="font-size:0.72rem; color:var(--text-muted); display:flex; align-items:center; gap:8px; margin-top:2px;">
+                      <span><i data-lucide="user" style="width:11px; height:11px; display:inline; vertical-align:-1px;"></i> ${t.assignee}</span>
+                      ${t.priority ? `<span class="pill-badge-sm">${t.priority}</span>` : ''}
+                    </div>
+                  </div>
+                </div>
+                <div style="display:flex; align-items:center; gap:6px;">
+                  <span class="status-pill ${t.status === 'DONE' ? 'success' : t.status === 'IN_PROGRESS' ? 'info' : 'warning'}" style="font-size:0.7rem; cursor:pointer;" onclick="toggleProjectTaskStatus('${p.code}', ${idx})">
+                    ${t.status}
+                  </span>
+                  <button class="icon-btn-ghost" title="Delete Task" onclick="deleteProjectTask('${p.code}', ${idx})">
+                    <i data-lucide="x" style="width:13px; height:13px;"></i>
+                  </button>
+                </div>
+              </div>
+            `).join("")}
+          </div>
+        </div>
+
+        <div class="project-card-footer">
+          <div style="font-size:0.75rem; color:var(--text-muted); display:flex; align-items:center; gap:6px;">
+            <i data-lucide="calendar" style="width:13px; height:13px;"></i> Target: <strong>${p.deadline || '2026-10-30'}</strong>
+          </div>
+          <div style="display:flex; gap:6px;">
+            <button class="btn btn-secondary btn-sm" style="font-size:0.75rem; padding:4px 10px;" onclick="openLogProjectExpenseModal('${p.code}')">
+              <i data-lucide="receipt" style="width:12px; height:12px;"></i> Log Expense
+            </button>
+            <button class="btn btn-secondary btn-sm" style="font-size:0.75rem; padding:4px 10px;" onclick="openAddProjectTaskModal('${p.code}')">
+              <i data-lucide="plus" style="width:12px; height:12px;"></i> Task
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join("");
+
+  if (window.lucide) {
+    lucide.createIcons();
+  }
+}
+
+// Project Modal Popups & CRUD Operations
+function populateProjectDropdowns() {
+  const taskSel = document.getElementById("task-target-project");
+  const expSel = document.getElementById("expense-target-project");
+  const projects = enterpriseData.projects || [];
+
+  const opts = projects.map(p => `<option value="${p.code}">${p.name} (${p.code})</option>`).join("");
+
+  if (taskSel) taskSel.innerHTML = opts;
+  if (expSel) expSel.innerHTML = opts;
+}
+
+function openAddProjectTaskModal(projectCode = "") {
+  populateProjectDropdowns();
+  if (projectCode) {
+    const taskSel = document.getElementById("task-target-project");
+    if (taskSel) taskSel.value = projectCode;
+  }
+  openModal("modal-add-project-task");
+}
+
+function openLogProjectExpenseModal(projectCode = "") {
+  populateProjectDropdowns();
+  if (projectCode) {
+    const expSel = document.getElementById("expense-target-project");
+    if (expSel) expSel.value = projectCode;
+  }
+  const dateInp = document.getElementById("expense-date");
+  if (dateInp) dateInp.value = new Date().toISOString().split("T")[0];
+  openModal("modal-log-project-expense");
+}
+
+function handleCreateProject(event) {
+  event.preventDefault();
+  const name = document.getElementById("new-project-name").value.trim();
+  const code = document.getElementById("new-project-code").value.trim().toUpperCase();
+  const department = document.getElementById("new-project-dept").value;
+  const lead = document.getElementById("new-project-lead").value;
+  const priority = document.getElementById("new-project-priority").value;
+  const budget = parseFloat(document.getElementById("new-project-budget").value) || 0;
+  const spent = parseFloat(document.getElementById("new-project-spent").value) || 0;
+  const status = document.getElementById("new-project-status").value;
+  const deadline = document.getElementById("new-project-deadline").value;
+  const description = document.getElementById("new-project-desc").value.trim();
+
+  const initTaskTitle = document.getElementById("new-project-initial-task").value.trim();
+  const initTaskAssignee = document.getElementById("new-project-task-assignee").value;
+
+  const tasks = [];
+  if (initTaskTitle) {
+    tasks.push({ title: initTaskTitle, assignee: initTaskAssignee, status: "IN_PROGRESS", priority: "HIGH" });
+  }
+
+  const newProj = {
+    name,
+    code,
+    department,
+    lead,
+    priority,
+    budget,
+    spent,
+    progress: 0,
+    status,
+    deadline,
+    description,
+    tasks
+  };
+
+  enterpriseData.projects.unshift(newProj);
+
+  closeModal("modal-add-project");
+  document.getElementById("form-add-project").reset();
+  showToast(`Project "${name}" (${code}) created successfully!`, "success");
+  filterProjects();
+}
+
+function handleCreateProjectTask(event) {
+  event.preventDefault();
+  const code = document.getElementById("task-target-project").value;
+  const title = document.getElementById("task-title").value.trim();
+  const assignee = document.getElementById("task-assignee").value;
+  const priority = document.getElementById("task-priority").value;
+  const status = document.getElementById("task-status").value;
+
+  const proj = enterpriseData.projects.find(p => p.code === code);
+  if (proj) {
+    if (!proj.tasks) proj.tasks = [];
+    proj.tasks.push({ title, assignee, priority, status });
+    closeModal("modal-add-project-task");
+    document.getElementById("form-add-project-task").reset();
+    showToast(`Deliverable task added to ${proj.name}!`, "success");
+    filterProjects();
+  }
+}
+
+function handleLogProjectExpense(event) {
+  event.preventDefault();
+  const code = document.getElementById("expense-target-project").value;
+  const amount = parseFloat(document.getElementById("expense-amount").value) || 0;
+  const category = document.getElementById("expense-category").value;
+  const narration = document.getElementById("expense-narration").value.trim();
+
+  const proj = enterpriseData.projects.find(p => p.code === code);
+  if (proj) {
+    const currentSpent = typeof proj.spent === "number" ? proj.spent : parseFloat(String(proj.spent).replace(/[^0-9.]/g, "")) || 0;
+    proj.spent = currentSpent + amount;
+
+    closeModal("modal-log-project-expense");
+    document.getElementById("form-log-project-expense").reset();
+    showToast(`Recorded ₹${amount.toLocaleString('en-IN')} expense (${category}) for project ${proj.code}`, "success");
+    filterProjects();
+  }
+}
+
+function toggleProjectTaskStatus(code, taskIdx) {
+  const proj = enterpriseData.projects.find(p => p.code === code);
+  if (proj && proj.tasks && proj.tasks[taskIdx]) {
+    const current = proj.tasks[taskIdx].status;
+    const nextStatus = current === "TODO" ? "IN_PROGRESS" : current === "IN_PROGRESS" ? "DONE" : "TODO";
+    proj.tasks[taskIdx].status = nextStatus;
+
+    showToast(`Deliverable status updated to ${nextStatus}`, "info");
+    filterProjects();
+  }
+}
+
+function deleteProjectTask(code, taskIdx) {
+  const proj = enterpriseData.projects.find(p => p.code === code);
+  if (proj && proj.tasks && proj.tasks[taskIdx]) {
+    proj.tasks.splice(taskIdx, 1);
+    showToast("Deliverable task removed.", "info");
+    filterProjects();
+  }
+}
+
+function updateProjectStatus(code, newStatus) {
+  const proj = enterpriseData.projects.find(p => p.code === code);
+  if (proj) {
+    proj.status = newStatus;
+    showToast(`Project ${code} status updated to ${newStatus}`, "success");
+    filterProjects();
+  }
+}
+
+function deleteProject(code) {
+  if (confirm(`Are you sure you want to delete project ${code}? This action cannot be undone.`)) {
+    enterpriseData.projects = enterpriseData.projects.filter(p => p.code !== code);
+    showToast(`Project ${code} deleted.`, "warning");
+    filterProjects();
+  }
 }
 
 // Render Approvals

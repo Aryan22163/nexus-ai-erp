@@ -109,8 +109,8 @@ async def run_seed() -> None:
             id=uuid.uuid4(),
             organization_id=org_id,
             email="admin@nexusretail.com",
-            first_name="Vikram",
-            last_name="Aditya",
+            first_name="Aryan",
+            last_name="Thakur",
             hashed_password=get_password_hash("NexusAdmin2026!"),
             is_superuser=True,
             is_active=True,
@@ -661,12 +661,12 @@ async def run_seed() -> None:
         session.add_all([desig_cto, desig_vp_sales, desig_cfo, desig_wh_lead])
         await session.flush()
 
-        emp_vikram = Employee(
+        emp_aryan = Employee(
             organization_id=org_id,
             user_id=admin_user.id,
             employee_code="EMP-001",
-            first_name="Vikram",
-            last_name="Aditya",
+            first_name="Aryan",
+            last_name="Thakur",
             email="admin@nexusretail.com",
             phone="+91 98200 00001",
             department_id=dept_exec.id,
@@ -700,14 +700,14 @@ async def run_seed() -> None:
             date_of_joining=date(2023, 5, 10),
             status="ACTIVE",
         )
-        session.add_all([emp_vikram, emp_anita, emp_rahul])
+        session.add_all([emp_aryan, emp_anita, emp_rahul])
         await session.flush()
 
         # Log attendance
         for offset in range(5):
             att_date = today - timedelta(days=offset)
             session.add_all([
-                Attendance(organization_id=org_id, employee_id=emp_vikram.id, attendance_date=att_date, status="PRESENT"),
+                Attendance(organization_id=org_id, employee_id=emp_aryan.id, attendance_date=att_date, status="PRESENT"),
                 Attendance(organization_id=org_id, employee_id=emp_anita.id, attendance_date=att_date, status="PRESENT"),
                 Attendance(organization_id=org_id, employee_id=emp_rahul.id, attendance_date=att_date, status="PRESENT"),
             ])
@@ -755,7 +755,7 @@ async def run_seed() -> None:
         # Timesheet
         ts1 = Timesheet(
             organization_id=org_id,
-            employee_id=emp_vikram.id,
+            employee_id=emp_aryan.id,
             project_id=proj_wms.id,
             task_id=task1.id,
             work_date=today - timedelta(days=6),
