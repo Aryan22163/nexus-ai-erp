@@ -353,9 +353,97 @@
           </div>
         </div>
 
+        <!-- KPI Grid for Sales Overview -->
+        <div class="kpi-grid" style="margin-bottom: 20px;">
+          <div class="kpi-card">
+            <div class="kpi-header">
+              <span class="kpi-title">Gross Sales Revenue</span>
+              <div class="kpi-icon-wrapper text-emerald-600 bg-emerald-50">
+                <i data-lucide="trending-up"></i>
+              </div>
+            </div>
+            <div class="kpi-value" id="sales-kpi-revenue">₹0.00</div>
+            <div class="kpi-footer text-emerald-600">
+              <i data-lucide="check-circle-2"></i> Realized + Booked Revenue
+            </div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-header">
+              <span class="kpi-title">Total Sales Orders</span>
+              <div class="kpi-icon-wrapper text-indigo-600 bg-indigo-50">
+                <i data-lucide="shopping-bag"></i>
+              </div>
+            </div>
+            <div class="kpi-value" id="sales-kpi-orders-count">0</div>
+            <div class="kpi-footer text-indigo-600">
+              <i data-lucide="arrow-up-right"></i> Active Contracts
+            </div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-header">
+              <span class="kpi-title">Accounts Receivable</span>
+              <div class="kpi-icon-wrapper text-amber-600 bg-amber-50">
+                <i data-lucide="clock"></i>
+              </div>
+            </div>
+            <div class="kpi-value" id="sales-kpi-ar">₹0.00</div>
+            <div class="kpi-footer text-amber-600">
+              <i data-lucide="alert-circle"></i> Outstanding Invoices
+            </div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-header">
+              <span class="kpi-title">Settlement Rate</span>
+              <div class="kpi-icon-wrapper text-blue-600 bg-blue-50">
+                <i data-lucide="shield-check"></i>
+              </div>
+            </div>
+            <div class="kpi-value" id="sales-kpi-settlement-rate">100%</div>
+            <div class="kpi-footer text-blue-600">
+              <i data-lucide="sparkles"></i> Paid Invoices Ratio
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 1: Confirmed Sales Orders -->
+        <div class="panel-card" style="margin-bottom: 24px;">
+          <div class="panel-header">
+            <div>
+              <h3 class="panel-title">Confirmed Sales Orders</h3>
+              <p class="panel-subtitle" style="font-size:0.8rem; color:var(--text-muted); margin-top:2px;">Active customer orders, items, quantities & fulfillment status</p>
+            </div>
+            <span class="status-pill success" id="sales-orders-badge">0 Orders</span>
+          </div>
+          <div class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Order ID</th>
+                  <th>Customer</th>
+                  <th>Item / Description</th>
+                  <th>Qty</th>
+                  <th>Order Date</th>
+                  <th>Total Amount (INR)</th>
+                  <th>Fulfillment Status</th>
+                  <th>Payment Status</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="sales-orders-tbody">
+                <!-- Populated by JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Section 2: Tax Invoices & Realized Revenue -->
         <div class="panel-card">
           <div class="panel-header">
-            <h3 class="panel-title">Invoices & Realized Revenue</h3>
+            <div>
+              <h3 class="panel-title">GST Tax Invoices & Realized Revenue</h3>
+              <p class="panel-subtitle" style="font-size:0.8rem; color:var(--text-muted); margin-top:2px;">Legal billing records, payment links & invoice receipts</p>
+            </div>
+            <span class="status-pill info" id="sales-invoices-badge">0 Invoices</span>
           </div>
           <div class="table-container">
             <table class="data-table">

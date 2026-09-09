@@ -21,10 +21,10 @@ const enterpriseData = {
     cash: "₹5,680,000",
   },
   orders: [
-    { id: "SO-2026-001", customer: "Tata Consumer Products Ltd", date: "2026-08-30", amount: "₹1,062,000", status: "CONFIRMED" },
-    { id: "SO-2026-002", customer: "Reliance Retail Ventures", date: "2026-09-02", amount: "₹2,450,000", status: "CONFIRMED" },
-    { id: "SO-2026-003", customer: "Croma (Infiniti Retail)", date: "2026-09-05", amount: "₹890,000", status: "FULFILLED" },
-    { id: "SO-2026-004", customer: "Zepto Hyperlocal Warehouses", date: "2026-09-07", amount: "₹540,000", status: "CONFIRMED" },
+    { id: "SO-2026-001", customer: "Tata Consumer Products Ltd", product: "NEXUS Core POS Terminal X5", qty: 30, date: "2026-08-30", amount: "₹1,062,000", status: "CONFIRMED", paymentStatus: "PAID", invoiceNumber: "INV-2026-001" },
+    { id: "SO-2026-002", customer: "Reliance Retail Ventures", product: "High-Speed Barcode Scanner Pro", qty: 150, date: "2026-09-02", amount: "₹2,450,000", status: "CONFIRMED", paymentStatus: "UNPAID", invoiceNumber: "INV-2026-002" },
+    { id: "SO-2026-003", customer: "Croma (Infiniti Retail)", product: "Rugged Industrial Handheld PDA", qty: 20, date: "2026-09-05", amount: "₹890,000", status: "FULFILLED", paymentStatus: "PAID", invoiceNumber: "INV-2026-003" },
+    { id: "SO-2026-004", customer: "Zepto Hyperlocal Warehouses", product: "Smart RFID Gate Reader Portal", qty: 6, date: "2026-09-07", amount: "₹540,000", status: "CONFIRMED", paymentStatus: "UNPAID", invoiceNumber: "INV-2026-004" },
   ],
   stock: [
     { sku: "POS-X5-001", name: "NEXUS Core POS Terminal X5", location: "Mumbai Central FC", qty: 100, reorder: 15, status: "Adequate", unitRate: 32000 },
@@ -485,42 +485,118 @@ function renderCRM() {
 
 // Render Sales
 function renderSales() {
-  const tbody = document.getElementById("sales-invoices-tbody");
-  if (!tbody) return;
+  const ordersTbody = document.getElementById("sales-orders-tbody");
+  const invoicesTbody = document.getElementById("sales-invoices-tbody");
 
-  tbody.innerHTML = enterpriseData.invoices.map(inv => `
-    <tr>
-      <td class="item-bold">${inv.number}</td>
-      <td>${inv.customer}</td>
-      <td>${inv.issueDate}</td>
-      <td>${inv.dueDate}</td>
-      <td class="item-bold">${inv.amount}</td>
-      <td>
-        <div style="display:inline-flex; align-items:center; gap:6px;">
-          <span class="status-pill ${inv.status === 'PAID' ? 'success' : 'danger'}">
-            ${inv.status}
+  // 1. Render Confirmed Sales Orders
+  if (ordersTbody) {
+    ordersTbody.innerHTML = enterpriseData.orders.map(ord => `
+      <tr>
+        <td class="item-bold">${ord.id}</td>
+        <td>${ord.customer}</td>
+        <td>${ord.product || 'NEXUS Core POS Terminal X5'}</td>
+        <td class="item-bold">${ord.qty || 1}</td>
+        <td>${ord.date}</td>
+        <td class="item-bold">${ord.amount}</td>
+        <td>
+          <span class="status-pill ${ord.status === 'CONFIRMED' ? 'success' : (ord.status === 'FULFILLED' ? 'info' : 'warning')}">
+            ${ord.status}
           </span>
-          ${inv.status !== 'PAID' ? `
-            <button class="btn-pay-settlement" onclick="openSettlePaymentModal('${inv.number}')" title="Settle Invoice ${inv.number}">
-              <i data-lucide="credit-card" style="width:12px; height:12px;"></i> Pay Now
+        </td>
+        <td>
+          <span class="status-pill ${ord.paymentStatus === 'PAID' ? 'success' : 'danger'}">
+            ${ord.paymentStatus || 'UNPAID'}
+          </span>
+        </td>
+        <td>
+          <div style="display:inline-flex; align-items:center; gap:6px;">
+            <button class="btn btn-xs btn-outline" onclick="openReceiptModal('${ord.invoiceNumber || 'INV-2026-001'}')" title="View Linked GST Invoice">
+              <i data-lucide="file-text" style="width:13px; height:13px; margin-right:4px;"></i> Invoice
             </button>
-          ` : ''}
-        </div>
-      </td>
-      <td>
-        <div style="display:inline-flex; align-items:center; gap:6px;">
-          <button class="btn btn-xs btn-outline" onclick="openReceiptModal('${inv.number}')" title="View & Print Receipt">
-            <i data-lucide="receipt" style="width:13px; height:13px; margin-right:4px;"></i> View Receipt
-          </button>
-          <button class="btn btn-xs btn-secondary" onclick="openEmailInvoiceModal('${inv.number}')" title="Send Invoice & Receipt to Customer Email">
-            <i data-lucide="mail" style="width:13px; height:13px; margin-right:4px;"></i> Email
-          </button>
-        </div>
-      </td>
-    </tr>
-  `).join("");
+            ${ord.status !== 'FULFILLED' ? `
+              <button class="btn btn-xs btn-secondary" onclick="fulfillSalesOrder('${ord.id}')" title="Mark Order Fulfilled & Dispatched">
+                <i data-lucide="truck" style="width:13px; height:13px; margin-right:4px;"></i> Fulfill
+              </button>
+            ` : ''}
+          </div>
+        </td>
+      </tr>
+    `).join("");
+  }
+
+  // 2. Render GST Tax Invoices
+  if (invoicesTbody) {
+    invoicesTbody.innerHTML = enterpriseData.invoices.map(inv => `
+      <tr>
+        <td class="item-bold">${inv.number}</td>
+        <td>${inv.customer}</td>
+        <td>${inv.issueDate}</td>
+        <td>${inv.dueDate}</td>
+        <td class="item-bold">${inv.amount}</td>
+        <td>
+          <div style="display:inline-flex; align-items:center; gap:6px;">
+            <span class="status-pill ${inv.status === 'PAID' ? 'success' : 'danger'}">
+              ${inv.status}
+            </span>
+            ${inv.status !== 'PAID' ? `
+              <button class="btn-pay-settlement" onclick="openSettlePaymentModal('${inv.number}')" title="Settle Invoice ${inv.number}">
+                <i data-lucide="credit-card" style="width:12px; height:12px;"></i> Pay Now
+              </button>
+            ` : ''}
+          </div>
+        </td>
+        <td>
+          <div style="display:inline-flex; align-items:center; gap:6px;">
+            <button class="btn btn-xs btn-outline" onclick="openReceiptModal('${inv.number}')" title="View & Print Receipt">
+              <i data-lucide="receipt" style="width:13px; height:13px; margin-right:4px;"></i> View Receipt
+            </button>
+            <button class="btn btn-xs btn-secondary" onclick="openEmailInvoiceModal('${inv.number}')" title="Send Invoice & Receipt to Customer Email">
+              <i data-lucide="mail" style="width:13px; height:13px; margin-right:4px;"></i> Email
+            </button>
+          </div>
+        </td>
+      </tr>
+    `).join("");
+  }
+
+  // 3. Update Sales KPI Summary Cards
+  const revEl = document.getElementById("sales-kpi-revenue");
+  if (revEl) {
+    revEl.textContent = "₹" + (enterpriseData.finance.salesRevenue / 1000000).toFixed(2) + "M";
+  }
+  const countEl = document.getElementById("sales-kpi-orders-count");
+  if (countEl) {
+    countEl.textContent = enterpriseData.orders.length;
+  }
+  const arEl = document.getElementById("sales-kpi-ar");
+  if (arEl) {
+    arEl.textContent = "₹" + (enterpriseData.finance.accountsReceivable / 1000000).toFixed(2) + "M";
+  }
+  const settEl = document.getElementById("sales-kpi-settlement-rate");
+  if (settEl) {
+    const paidCount = enterpriseData.invoices.filter(i => i.status === "PAID").length;
+    const rate = enterpriseData.invoices.length > 0 ? Math.round((paidCount / enterpriseData.invoices.length) * 100) : 100;
+    settEl.textContent = rate + "%";
+  }
+
+  const ordBadge = document.getElementById("sales-orders-badge");
+  if (ordBadge) ordBadge.textContent = enterpriseData.orders.length + " Orders";
+
+  const invBadge = document.getElementById("sales-invoices-badge");
+  if (invBadge) invBadge.textContent = enterpriseData.invoices.length + " Invoices";
+
   setupLucideIcons();
 }
+
+window.fulfillSalesOrder = function(orderId) {
+  const ord = enterpriseData.orders.find(o => o.id === orderId);
+  if (ord) {
+    ord.status = "FULFILLED";
+    renderSales();
+    renderDashboard();
+    showToast(`Sales Order ${orderId} status updated to FULFILLED!`, "success");
+  }
+};
 
 // Render Inventory
 function renderInventory() {
@@ -2290,13 +2366,18 @@ window.submitAddSalesOrder = function() {
   };
 
   enterpriseData.invoices.unshift(newInvoice);
-  enterpriseData.orders.unshift({
+  const newOrder = {
     id: "SO-2026-00" + (enterpriseData.orders.length + 1),
     customer: customer,
+    product: product,
+    qty: qty,
     date: "2026-09-09",
     amount: totalFormatted,
     status: "CONFIRMED",
-  });
+    paymentStatus: terms.includes("Advance") ? "PAID" : "UNPAID",
+    invoiceNumber: invNumber,
+  };
+  enterpriseData.orders.unshift(newOrder);
 
   // DEDUCT STOCK FROM INVENTORY
   let matchedItem = enterpriseData.stock.find(s => product.includes(s.sku));
@@ -2346,24 +2427,34 @@ window.submitAddSalesOrder = function() {
     amount: totalFormatted + ".00",
     status: "Audited & Balanced",
   });
+  renderSales();
   renderInventory();
   renderFinance();
   renderDashboard();
   updateStockDropdowns();
 
-  // Highlight first row
-  const tbody = document.getElementById("sales-invoices-tbody");
-  if (tbody && tbody.firstElementChild) {
-    tbody.firstElementChild.style.backgroundColor = "rgba(79, 70, 229, 0.08)";
-    tbody.firstElementChild.style.transition = "background-color 2s ease";
+  // Highlight first row in both orders and invoices tables
+  const ordTbody = document.getElementById("sales-orders-tbody");
+  if (ordTbody && ordTbody.firstElementChild) {
+    ordTbody.firstElementChild.style.backgroundColor = "rgba(79, 70, 229, 0.08)";
+    ordTbody.firstElementChild.style.transition = "background-color 2s ease";
     setTimeout(() => {
-      if (tbody.firstElementChild) tbody.firstElementChild.style.backgroundColor = "";
+      if (ordTbody.firstElementChild) ordTbody.firstElementChild.style.backgroundColor = "";
+    }, 2500);
+  }
+
+  const invTbody = document.getElementById("sales-invoices-tbody");
+  if (invTbody && invTbody.firstElementChild) {
+    invTbody.firstElementChild.style.backgroundColor = "rgba(79, 70, 229, 0.08)";
+    invTbody.firstElementChild.style.transition = "background-color 2s ease";
+    setTimeout(() => {
+      if (invTbody.firstElementChild) invTbody.firstElementChild.style.backgroundColor = "";
     }, 2500);
   }
 
   document.getElementById("form-add-sales-order").reset();
   closeModal("modal-add-sales-order");
-  showToast(`Sales invoice ${invNumber} generated for ${customer}!${stockNote}`, "success");
+  showToast(`Sales Order ${newOrder.id} & Tax Invoice ${invNumber} created for ${customer}!${stockNote}`, "success");
 };
 
 // 3. Submit: Stock Transfer
