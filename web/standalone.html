@@ -442,6 +442,34 @@
             </div>
           </div>
         </div>
+
+        <div class="panel-card" style="margin-top: 24px;">
+          <div class="panel-header">
+            <div>
+              <h3 class="panel-title">General Ledger & Posted Journal Vouchers</h3>
+              <p style="font-size: 0.78rem; color: var(--text-muted); margin-top: 2px;">Immutable double-entry audit trail automatically updated on customer settlements and journal postings.</p>
+            </div>
+            <span class="status-pill success"><i data-lucide="shield-check" style="width:12px; height:12px; margin-right:4px;"></i> Double-Entry Invariant Verified</span>
+          </div>
+          <div class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Voucher #</th>
+                  <th>Posting Date</th>
+                  <th>Transaction Narration</th>
+                  <th>Debit Account</th>
+                  <th>Credit Account</th>
+                  <th>Amount (INR)</th>
+                  <th>Audit Status</th>
+                </tr>
+              </thead>
+              <tbody id="journal-vouchers-tbody">
+                <!-- Populated dynamically by JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
       </section>
 
       <!-- Tab View: 6. HR & Projects -->

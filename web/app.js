@@ -74,7 +74,37 @@ const enterpriseData = {
         { title: "Validate Real-Time Stock Ledger Webhook Synchronization", assignee: "Vikram Aditya", status: "IN_PROGRESS" }
       ]
     }
-  ]
+  ],
+  finance: {
+    bankCash: 5680000,
+    accountsReceivable: 3340000,
+    inventoryAsset: 8420000,
+    accountsPayable: 4200000,
+    shareCapital: 5000000,
+    salesRevenue: 24850000,
+    cogs: 17200000,
+    opex: 1530000,
+    journalEntries: [
+      {
+        voucher: "JV-2026-001",
+        date: "2026-09-01",
+        narration: "Initial Shareholder Equity Capital Injection",
+        debit: "1020 • Bank HDFC Current Account",
+        credit: "3020 • Paid-Up Share Capital",
+        amount: "₹5,000,000.00",
+        status: "Audited & Balanced",
+      },
+      {
+        voucher: "JV-2026-002",
+        date: "2026-09-01",
+        narration: "Customer Settlement - Tata Consumer Products Ltd (INV-2026-001)",
+        debit: "1020 • Bank HDFC Current Account",
+        credit: "1030 • Accounts Receivable",
+        amount: "₹1,062,000.00",
+        status: "Audited & Balanced",
+      },
+    ]
+  }
 };
 
 // Initialize Application
@@ -315,42 +345,89 @@ function renderInventory() {
 
 // Render Finance
 function renderFinance() {
+  const fin = enterpriseData.finance;
+  const totalAssets = fin.bankCash + fin.accountsReceivable + fin.inventoryAsset;
+  const grossProfit = fin.salesRevenue - fin.cogs;
+  const netProfit = grossProfit - fin.opex;
+  const marginPct = ((netProfit / fin.salesRevenue) * 100).toFixed(1);
+
+  // Update 5-Pillar Chart of Accounts Tree
   const coaTree = document.getElementById("coa-tree-view");
   if (coaTree) {
     coaTree.innerHTML = `
       <div class="coa-node group">
-        <div class="coa-node-header"><span>1000 • ASSETS</span><span>₹14,100,000.00</span></div>
+        <div class="coa-node-header"><span>1000 • ASSETS</span><span style="font-weight:700;">₹${totalAssets.toLocaleString("en-IN")}.00</span></div>
       </div>
       <div class="coa-node" style="margin-left: 18px;">
-        <div class="coa-node-header"><span>1020 • Bank HDFC Current Account</span><span>₹5,680,000.00</span></div>
+        <div class="coa-node-header"><span>1020 • Bank HDFC Current Account</span><span class="text-emerald-600" style="font-weight:700;">₹${fin.bankCash.toLocaleString("en-IN")}.00</span></div>
       </div>
       <div class="coa-node" style="margin-left: 18px;">
-        <div class="coa-node-header"><span>1040 • Inventory Perpetual Asset</span><span>₹8,420,000.00</span></div>
+        <div class="coa-node-header"><span>1030 • Accounts Receivable (Trade Debtors)</span><span style="font-weight:600;">₹${fin.accountsReceivable.toLocaleString("en-IN")}.00</span></div>
+      </div>
+      <div class="coa-node" style="margin-left: 18px;">
+        <div class="coa-node-header"><span>1040 • Inventory Perpetual Asset</span><span style="font-weight:600;">₹${fin.inventoryAsset.toLocaleString("en-IN")}.00</span></div>
       </div>
       <div class="coa-node group" style="margin-top: 10px;">
-        <div class="coa-node-header"><span>2000 • LIABILITIES</span><span>₹4,200,000.00</span></div>
+        <div class="coa-node-header"><span>2000 • LIABILITIES</span><span style="font-weight:700;">₹${fin.accountsPayable.toLocaleString("en-IN")}.00</span></div>
       </div>
       <div class="coa-node" style="margin-left: 18px;">
-        <div class="coa-node-header"><span>2010 • Accounts Payable (OEM Creditors)</span><span>₹4,200,000.00</span></div>
+        <div class="coa-node-header"><span>2010 • Accounts Payable (OEM Creditors)</span><span style="font-weight:600;">₹${fin.accountsPayable.toLocaleString("en-IN")}.00</span></div>
       </div>
       <div class="coa-node group" style="margin-top: 10px;">
-        <div class="coa-node-header"><span>3000 • EQUITY</span><span>₹5,000,000.00</span></div>
+        <div class="coa-node-header"><span>3000 • EQUITY</span><span style="font-weight:700;">₹${fin.shareCapital.toLocaleString("en-IN")}.00</span></div>
       </div>
       <div class="coa-node" style="margin-left: 18px;">
-        <div class="coa-node-header"><span>3020 • Paid-Up Share Capital</span><span>₹5,000,000.00</span></div>
+        <div class="coa-node-header"><span>3020 • Paid-Up Share Capital</span><span style="font-weight:600;">₹${fin.shareCapital.toLocaleString("en-IN")}.00</span></div>
       </div>
     `;
   }
 
+  // Update Real-Time Financial Statement Balances
   const preview = document.getElementById("financial-preview");
   if (preview) {
     preview.innerHTML = `
-      <div class="stmt-row"><span>Total Gross Sales Revenue</span><span class="item-bold">₹24,850,000.00</span></div>
-      <div class="stmt-row"><span>Cost of Goods Sold (COGS)</span><span class="text-muted">- ₹17,200,000.00</span></div>
-      <div class="stmt-row total"><span>Gross Profit</span><span class="text-emerald-600">₹7,650,000.00</span></div>
-      <div class="stmt-row"><span>Operating Overhead & Cloud Infrastructure</span><span class="text-muted">- ₹1,530,000.00</span></div>
-      <div class="stmt-row total"><span>Net Operating Profit</span><span class="text-primary">₹6,120,000.00 (24.6%)</span></div>
+      <div class="stmt-row"><span>Total Gross Sales Revenue</span><span class="item-bold">₹${fin.salesRevenue.toLocaleString("en-IN")}.00</span></div>
+      <div class="stmt-row"><span>Cost of Goods Sold (COGS)</span><span class="text-muted">- ₹${fin.cogs.toLocaleString("en-IN")}.00</span></div>
+      <div class="stmt-row total"><span>Gross Operating Profit</span><span class="text-emerald-600">₹${grossProfit.toLocaleString("en-IN")}.00</span></div>
+      <div class="stmt-row"><span>Operating Overhead & Cloud Infrastructure</span><span class="text-muted">- ₹${fin.opex.toLocaleString("en-IN")}.00</span></div>
+      <div class="stmt-row total"><span>Net Operating Profit</span><span class="text-primary">₹${netProfit.toLocaleString("en-IN")}.00 (${marginPct}%)</span></div>
+      <div class="stmt-row" style="margin-top:8px; border-top:1px dashed var(--border-light); padding-top:8px;">
+        <span>Liquid Bank Cash (HDFC Treasury)</span>
+        <strong style="color:var(--emerald-600); font-size:0.95rem;">₹${(fin.bankCash / 1000000).toFixed(2)}M</strong>
+      </div>
     `;
+  }
+
+  // Update General Ledger / Posted Journal Vouchers Table
+  const jvTbody = document.getElementById("journal-vouchers-tbody");
+  if (jvTbody && fin.journalEntries) {
+    jvTbody.innerHTML = fin.journalEntries.map(jv => `
+      <tr>
+        <td class="item-bold">${jv.voucher}</td>
+        <td>${jv.date}</td>
+        <td>
+          <div style="font-weight:600;">${escapeHtml(jv.narration)}</div>
+        </td>
+        <td><span class="badge badge-info" style="font-size:0.75rem;">${escapeHtml(jv.debit)}</span></td>
+        <td><span class="badge" style="background:#F1F5F9; color:var(--text-secondary); font-size:0.75rem;">${escapeHtml(jv.credit)}</span></td>
+        <td class="item-bold">${jv.amount}</td>
+        <td>
+          <span class="status-pill success"><i data-lucide="check" style="width:11px; height:11px; margin-right:3px;"></i> ${jv.status}</span>
+        </td>
+      </tr>
+    `).join("");
+    setupLucideIcons();
+  }
+
+  // Synchronize Top Executive Cockpit KPI cards
+  const kpiCash = document.getElementById("kpi-cash");
+  if (kpiCash) {
+    kpiCash.textContent = "₹" + (fin.bankCash / 1000000).toFixed(2) + "M";
+    kpiCash.style.transition = "color 0.3s ease";
+  }
+  const kpiRev = document.getElementById("kpi-revenue");
+  if (kpiRev) {
+    kpiRev.textContent = "₹" + (fin.salesRevenue / 1000000).toFixed(2) + "M";
   }
 }
 
@@ -842,12 +919,30 @@ window.submitJournalEntry = function() {
     return;
   }
 
-  const amountFormatted = "₹" + amount.toLocaleString("en-IN");
-  const jvNo = "JV-2026-00" + Math.floor(10 + Math.random() * 90);
+  const amountFormatted = "₹" + amount.toLocaleString("en-IN") + ".00";
+  const jvNo = "JV-2026-00" + (enterpriseData.finance.journalEntries.length + 1);
 
+  // If entry touches Bank Account, update bank cash
+  if (debit.includes("1110") || debit.includes("1020")) {
+    enterpriseData.finance.bankCash += amount;
+  } else if (credit.includes("1110") || credit.includes("1020")) {
+    enterpriseData.finance.bankCash = Math.max(0, enterpriseData.finance.bankCash - amount);
+  }
+
+  enterpriseData.finance.journalEntries.unshift({
+    voucher: jvNo,
+    date: "2026-09-09",
+    narration: title,
+    debit: debit,
+    credit: credit,
+    amount: amountFormatted,
+    status: "Audited & Balanced",
+  });
+
+  renderFinance();
   document.getElementById("form-journal-entry").reset();
   closeModal("modal-journal-entry");
-  showToast(`Balanced Journal Voucher ${jvNo} (${amountFormatted}) posted! (Dr: ${debit.split(' - ')[1] || debit} / Cr: ${credit.split(' - ')[1] || credit})`, "success");
+  showToast(`Balanced Journal Voucher ${jvNo} (${amountFormatted}) posted! Updated Chart of Accounts & General Ledger.`, "success");
 };
 
 // 5. Open Settle Payment Modal
@@ -864,7 +959,7 @@ window.openSettlePaymentModal = function(invNumber) {
   openModal("modal-settle-invoice");
 };
 
-// 6. Submit Invoice Settlement
+// 6. Submit Invoice Settlement & Sync to Finance
 window.submitInvoiceSettlement = function() {
   const invNum = document.getElementById("settle-inv-number").value;
   const method = document.getElementById("settle-method").value;
@@ -880,16 +975,39 @@ window.submitInvoiceSettlement = function() {
   inv.settlementRef = ref;
   inv.settlementMethod = method;
 
-  // Also update matching order if present
+  // Extract raw amount to update Finance
+  const rawAmt = parseFloat(inv.amount.replace(/[^0-9.]/g, "")) || 0;
+
+  // 1. Debit Bank Cash (Liquid Treasury Increases)
+  enterpriseData.finance.bankCash += rawAmt;
+
+  // 2. Credit Accounts Receivable (Trade Debtors Decreases)
+  enterpriseData.finance.accountsReceivable = Math.max(0, enterpriseData.finance.accountsReceivable - rawAmt);
+
+  // 3. Post double-entry General Ledger entry
+  const jvNum = "JV-2026-00" + (enterpriseData.finance.journalEntries.length + 1);
+  enterpriseData.finance.journalEntries.unshift({
+    voucher: jvNum,
+    date: payDate,
+    narration: `Customer Settlement - ${inv.customer} (${inv.number}) via ${method.split(' ')[0]}`,
+    debit: "1020 • Bank HDFC Current Account",
+    credit: "1030 • Accounts Receivable",
+    amount: inv.amount.includes("₹") ? inv.amount : "₹" + inv.amount,
+    status: "Audited & Balanced",
+  });
+
+  // 4. Also update matching sales order if present
   const order = enterpriseData.orders.find(o => o.customer === inv.customer);
   if (order) {
     order.payment = "Paid";
   }
 
+  // Synchronize both modules in the DOM
   renderSales();
+  renderFinance();
   closeModal("modal-settle-invoice");
 
-  showToast(`Settlement recorded! Invoice ${invNum} marked as PAID via ${method.split(' ')[0]}.`, "success");
+  showToast(`Settlement recorded! ${invNum} marked PAID. Realized ₹${(rawAmt/1000000).toFixed(2)}M into HDFC Bank Account. Double-entry GL Voucher ${jvNum} posted to Finance.`, "success");
 };
 
 // 7. View Receipt Modal
