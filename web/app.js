@@ -275,17 +275,25 @@ function renderSales() {
       <td>${inv.dueDate}</td>
       <td class="item-bold">${inv.amount}</td>
       <td>
-        <span class="status-pill ${inv.status === 'PAID' ? 'success' : 'warning'}">
-          ${inv.status}
-        </span>
+        <div style="display:inline-flex; align-items:center; gap:6px;">
+          <span class="status-pill ${inv.status === 'PAID' ? 'success' : 'danger'}">
+            ${inv.status}
+          </span>
+          ${inv.status !== 'PAID' ? `
+            <button class="btn-pay-settlement" onclick="openSettlePaymentModal('${inv.number}')" title="Settle Invoice ${inv.number}">
+              <i data-lucide="credit-card" style="width:12px; height:12px;"></i> Pay Now
+            </button>
+          ` : ''}
+        </div>
       </td>
       <td>
-        <button class="btn btn-xs btn-outline" onclick="showToast('Viewing invoice ${inv.number}', 'success')">
-          View Receipt
+        <button class="btn btn-xs btn-outline" onclick="openReceiptModal('${inv.number}')">
+          <i data-lucide="receipt" style="width:13px; height:13px; margin-right:4px;"></i> View Receipt
         </button>
       </td>
     </tr>
   `).join("");
+  setupLucideIcons();
 }
 
 // Render Inventory
@@ -841,5 +849,112 @@ window.submitJournalEntry = function() {
   closeModal("modal-journal-entry");
   showToast(`Balanced Journal Voucher ${jvNo} (${amountFormatted}) posted! (Dr: ${debit.split(' - ')[1] || debit} / Cr: ${credit.split(' - ')[1] || credit})`, "success");
 };
+
+// 5. Open Settle Payment Modal
+window.openSettlePaymentModal = function(invNumber) {
+  const inv = enterpriseData.invoices.find(i => i.number === invNumber);
+  if (!inv) return;
+
+  document.getElementById("settle-inv-number").value = inv.number;
+  document.getElementById("settle-display-inv").textContent = inv.number;
+  document.getElementById("settle-display-customer").textContent = inv.customer;
+  document.getElementById("settle-amount").value = inv.amount;
+  document.getElementById("settle-ref").value = "HDFC-NEFT-" + Math.floor(10000000 + Math.random() * 90000000);
+
+  openModal("modal-settle-invoice");
+};
+
+// 6. Submit Invoice Settlement
+window.submitInvoiceSettlement = function() {
+  const invNum = document.getElementById("settle-inv-number").value;
+  const method = document.getElementById("settle-method").value;
+  const bank = document.getElementById("settle-bank").value;
+  const ref = document.getElementById("settle-ref").value;
+  const payDate = document.getElementById("settle-date").value;
+
+  const inv = enterpriseData.invoices.find(i => i.number === invNum);
+  if (!inv) return;
+
+  inv.status = "PAID";
+  inv.settlementDate = payDate;
+  inv.settlementRef = ref;
+  inv.settlementMethod = method;
+
+  // Also update matching order if present
+  const order = enterpriseData.orders.find(o => o.customer === inv.customer);
+  if (order) {
+    order.payment = "Paid";
+  }
+
+  renderSales();
+  closeModal("modal-settle-invoice");
+
+  showToast(`Settlement recorded! Invoice ${invNum} marked as PAID via ${method.split(' ')[0]}.`, "success");
+};
+
+// 7. View Receipt Modal
+window.openReceiptModal = function(invNumber) {
+  const inv = enterpriseData.invoices.find(i => i.number === invNumber) || {
+    number: invNumber,
+    customer: "Tata Consumer Products Ltd",
+    issueDate: "2026-09-01",
+    dueDate: "2026-09-30",
+    amount: "₹1,062,000",
+    status: "PAID",
+    settlementRef: "TXN-HDFC-99214"
+  };
+
+  document.getElementById("receipt-inv-num").textContent = inv.number;
+  document.getElementById("receipt-inv-date").textContent = inv.issueDate;
+  document.getElementById("receipt-inv-due").textContent = inv.dueDate;
+  document.getElementById("receipt-cust-name").textContent = inv.customer;
+
+  const stampContainer = document.getElementById("receipt-status-stamp-container");
+  const isPaid = inv.status === "PAID";
+
+  if (stampContainer) {
+    stampContainer.innerHTML = isPaid
+      ? `<span class="receipt-status-stamp paid" id="receipt-stamp">✓ PAID &amp; SETTLED</span>`
+      : `<span class="receipt-status-stamp unpaid" id="receipt-stamp">⚠ UNPAID / OUTSTANDING</span>`;
+  }
+
+  document.getElementById("receipt-inv-ref").textContent = isPaid
+    ? (inv.settlementRef || "HDFC-RTGS-89104812")
+    : "Pending Payment Settlement";
+
+  // Parse amount for table display
+  const rawNum = parseFloat(inv.amount.replace(/[^0-9.]/g, "")) || 1062000;
+  const taxable = Math.round(rawNum / 1.18);
+  const gst = rawNum - taxable;
+
+  document.getElementById("receipt-subtotal").textContent = "₹" + taxable.toLocaleString("en-IN") + ".00";
+  document.getElementById("receipt-gst").textContent = "₹" + gst.toLocaleString("en-IN") + ".00";
+  document.getElementById("receipt-grand-total").textContent = inv.amount.includes("₹") ? inv.amount : "₹" + inv.amount;
+
+  const itemsTbody = document.getElementById("receipt-items-tbody");
+  if (itemsTbody) {
+    itemsTbody.innerHTML = `
+      <tr>
+        <td>
+          <div style="font-weight:700;">NEXUS POS Terminal Duo Hardware Deployment</div>
+          <div style="font-size:0.75rem; color:var(--text-muted);">SKU: POS-X5-001 • Comprehensive 24-Month On-Site SLA</div>
+        </td>
+        <td>8471</td>
+        <td>15 Units</td>
+        <td>₹${Math.round(taxable / 15).toLocaleString("en-IN")}.00</td>
+        <td>18% IGST</td>
+        <td style="font-weight:700;">₹${taxable.toLocaleString("en-IN")}.00</td>
+      </tr>
+    `;
+  }
+
+  openModal("modal-view-receipt");
+};
+
+// 8. Print Receipt Handler
+window.printReceipt = function() {
+  window.print();
+};
+
 
 

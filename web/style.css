@@ -1431,6 +1431,207 @@ body {
   gap: 12px;
 }
 
+.receipt-modal-card {
+  max-width: 760px;
+}
+
+.receipt-paper {
+  background: #FFFFFF;
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-md);
+  padding: 28px;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  color: var(--text-primary);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+.receipt-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  border-bottom: 2px solid var(--border-light);
+  padding-bottom: 18px;
+}
+
+.receipt-brand-title {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--primary);
+  letter-spacing: -0.02em;
+}
+
+.receipt-brand-meta {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+  margin-top: 4px;
+}
+
+.receipt-status-stamp {
+  padding: 6px 16px;
+  border-radius: var(--radius-sm);
+  font-weight: 800;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.receipt-status-stamp.paid {
+  border: 2px dashed #059669;
+  color: #059669;
+  background: rgba(16, 185, 129, 0.06);
+  transform: rotate(-3deg);
+}
+
+.receipt-status-stamp.unpaid {
+  border: 2px dashed #E11D48;
+  color: #E11D48;
+  background: rgba(225, 29, 72, 0.06);
+  transform: rotate(-3deg);
+}
+
+.receipt-meta-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  background: #F8FAFC;
+  padding: 16px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-light);
+}
+
+.receipt-meta-block h4 {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+
+.receipt-meta-block p {
+  font-size: 0.88rem;
+  color: var(--text-primary);
+  line-height: 1.4;
+}
+
+.receipt-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 10px 0;
+}
+
+.receipt-table th {
+  background: #F1F5F9;
+  padding: 10px 14px;
+  text-align: left;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border-medium);
+}
+
+.receipt-table td {
+  padding: 12px 14px;
+  font-size: 0.84rem;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.receipt-summary-box {
+  align-self: flex-end;
+  width: 280px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 10px;
+}
+
+.receipt-summary-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.84rem;
+  color: var(--text-secondary);
+}
+
+.receipt-summary-row.total {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  border-top: 2px solid var(--border-medium);
+  padding-top: 8px;
+}
+
+.receipt-footer-note {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-align: center;
+  border-top: 1px solid var(--border-light);
+  padding-top: 14px;
+}
+
+.btn-pay-settlement {
+  background: #10B981;
+  color: #FFFFFF;
+  border: none;
+  padding: 3px 8px;
+  border-radius: var(--radius-sm);
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 6px;
+  transition: background var(--transition-fast);
+}
+
+.btn-pay-settlement:hover {
+  background: #059669;
+}
+
+/* Print CSS */
+@media print {
+  body {
+    background: #FFFFFF !important;
+  }
+  body * {
+    visibility: hidden;
+  }
+  #modal-view-receipt,
+  #modal-view-receipt .modal-card,
+  #receipt-paper,
+  #receipt-paper * {
+    visibility: visible;
+  }
+  #modal-view-receipt {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    background: #FFFFFF !important;
+    padding: 0 !important;
+    backdrop-filter: none !important;
+    box-shadow: none !important;
+  }
+  #modal-view-receipt .modal-card {
+    box-shadow: none !important;
+    border: none !important;
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+  .modal-header,
+  .modal-footer,
+  .no-print {
+    display: none !important;
+  }
+}
+
 /* Responsive */
 @media (max-width: 1100px) {
   .metrics-grid {
@@ -1443,4 +1644,5 @@ body {
     grid-template-columns: 1fr;
   }
 }
+
 

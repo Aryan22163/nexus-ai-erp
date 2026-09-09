@@ -796,6 +796,171 @@
     </div>
   </div>
 
+  <!-- Modal 5: Settle Invoice Payment -->
+  <div class="modal-backdrop" id="modal-settle-invoice">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title">
+          <i data-lucide="credit-card" class="text-emerald-600"></i>
+          <span>Record Invoice Settlement</span>
+        </div>
+        <button class="modal-close-btn" onclick="closeModal('modal-settle-invoice')">&times;</button>
+      </div>
+      <form id="form-settle-invoice" onsubmit="event.preventDefault(); submitInvoiceSettlement();">
+        <input type="hidden" id="settle-inv-number" />
+        <div class="modal-body">
+          <div class="receipt-meta-grid" style="margin-bottom: 6px;">
+            <div class="receipt-meta-block">
+              <h4>Invoice Reference</h4>
+              <p id="settle-display-inv" style="font-weight: 700; font-size: 1rem; color: var(--primary);">-</p>
+            </div>
+            <div class="receipt-meta-block">
+              <h4>Customer Account</h4>
+              <p id="settle-display-customer" style="font-weight: 600;">-</p>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="settle-amount">Settlement Amount (₹) *</label>
+              <input type="text" id="settle-amount" readonly style="background:#F8FAFC; font-weight:700;" />
+            </div>
+            <div class="form-group">
+              <label for="settle-date">Payment Date *</label>
+              <input type="date" id="settle-date" value="2026-09-09" required />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="settle-method">Payment Instrument *</label>
+              <select id="settle-method" required>
+                <option value="NEFT / RTGS Corporate Transfer">NEFT / RTGS Corporate Transfer</option>
+                <option value="UPI Corporate Gateway">UPI Corporate Gateway</option>
+                <option value="Corporate Credit Card">Corporate Credit Card</option>
+                <option value="HDFC Bank Cheque Clearance">HDFC Bank Cheque Clearance</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="settle-bank">Deposit Account *</label>
+              <select id="settle-bank" required>
+                <option value="1110 - HDFC Current Account (₹5.68M)">1110 - HDFC Current Account (₹5.68M)</option>
+                <option value="1120 - ICICI Operating Treasury">1120 - ICICI Operating Treasury</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="settle-ref">UTR / Bank Transaction Reference *</label>
+            <input type="text" id="settle-ref" value="HDFC-NEFT-20260909-8812" required />
+            <small style="font-size:0.75rem; color:var(--emerald-600); margin-top:4px;">Real-time double-entry GL ledger posting: Dr Bank Account / Cr Accounts Receivable</small>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('modal-settle-invoice')">Cancel</button>
+          <button type="submit" class="btn btn-primary" style="background: #10B981; border-color: #10B981;">
+            <i data-lucide="check-check"></i>
+            <span>Confirm & Record Settlement</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 6: View & Print Official Invoice Receipt -->
+  <div class="modal-backdrop" id="modal-view-receipt">
+    <div class="modal-card receipt-modal-card">
+      <div class="modal-header no-print">
+        <div class="modal-title">
+          <i data-lucide="file-text" class="text-indigo-600"></i>
+          <span>Tax Invoice & Official Payment Receipt</span>
+        </div>
+        <button class="modal-close-btn" onclick="closeModal('modal-view-receipt')">&times;</button>
+      </div>
+      <div class="modal-body" id="receipt-printable-area">
+        <div class="receipt-paper" id="receipt-paper">
+          <div class="receipt-header">
+            <div>
+              <div class="receipt-brand-title">NEXUS RETAIL PRIVATE LIMITED</div>
+              <div class="receipt-brand-meta">
+                Level 9, Maker Maxity, Bandra Kurla Complex (BKC), Mumbai, Maharashtra 400051<br/>
+                <strong>GSTIN:</strong> 27AABCN1234F1Z8 | <strong>CIN:</strong> U72900MH2026PTC123456<br/>
+                Email: billing@nexusretail.com | Tel: +91 (22) 6123 4500
+              </div>
+            </div>
+            <div id="receipt-status-stamp-container">
+              <span class="receipt-status-stamp paid" id="receipt-stamp">PAID & SETTLED</span>
+            </div>
+          </div>
+
+          <div class="receipt-meta-grid">
+            <div class="receipt-meta-block">
+              <h4>Invoice & Payment Details</h4>
+              <p>
+                <strong>Invoice Number:</strong> <span id="receipt-inv-num">INV-2026-001</span><br/>
+                <strong>Issue Date:</strong> <span id="receipt-inv-date">01 Sep 2026</span><br/>
+                <strong>Due Date:</strong> <span id="receipt-inv-due">30 Sep 2026</span><br/>
+                <strong>Settlement Reference:</strong> <span id="receipt-inv-ref">TXN-HDFC-99214</span>
+              </p>
+            </div>
+            <div class="receipt-meta-block">
+              <h4>Billed To (Client Account)</h4>
+              <p>
+                <strong id="receipt-cust-name">Tata Consumer Products Ltd</strong><br/>
+                GSTIN: 27AABCT9981K1Z3<br/>
+                14th Floor, Bombay House, Fort, Mumbai 400001<br/>
+                Enterprise Technology Procurement Division
+              </p>
+            </div>
+          </div>
+
+          <table class="receipt-table">
+            <thead>
+              <tr>
+                <th>Item & Description</th>
+                <th>HSN/SAC</th>
+                <th>Qty</th>
+                <th>Unit Rate</th>
+                <th>Tax Rate</th>
+                <th>Amount (INR)</th>
+              </tr>
+            </thead>
+            <tbody id="receipt-items-tbody">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+
+          <div class="receipt-summary-box">
+            <div class="receipt-summary-row">
+              <span>Taxable Subtotal:</span>
+              <strong id="receipt-subtotal">₹900,000.00</strong>
+            </div>
+            <div class="receipt-summary-row">
+              <span>Integrated GST (18%):</span>
+              <strong id="receipt-gst">₹162,000.00</strong>
+            </div>
+            <div class="receipt-summary-row total">
+              <span>Total Amount:</span>
+              <strong id="receipt-grand-total">₹1,062,000.00</strong>
+            </div>
+          </div>
+
+          <div class="receipt-footer-note">
+            This is a computer-generated tax invoice and payment acknowledgment generated by <strong>NEXUS AI Enterprise Operating System</strong>.<br/>
+            Authorized Digital Signatory: <em>Finance & Corporate Treasury Division, Nexus Retail Pvt Ltd</em>.
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer no-print">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('modal-view-receipt')">Close</button>
+        <button type="button" class="btn btn-primary" onclick="printReceipt()">
+          <i data-lucide="printer"></i>
+          <span>Print Receipt</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Notification Toast Container -->
   <div class="toast-container" id="toast-container"></div>
 
