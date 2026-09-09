@@ -729,17 +729,106 @@
         </div>
       </section>
 
-      <!-- Tab View: 8. Approvals -->
+      <!-- Tab View: 8. HITL Approvals & Governance -->
       <section id="tab-approvals" class="tab-view">
         <div class="page-header">
           <div>
-            <h1 class="page-title">Human-in-the-Loop (HITL) Approvals</h1>
-            <p class="page-subtitle">Governance safeguard: Review, approve, or reject proposed business mutations created by AI Agents.</p>
+            <h1 class="page-title">Human-in-the-Loop (HITL) Approvals &amp; Governance</h1>
+            <p class="page-subtitle">Enterprise AI Safeguard: Review, authorize, or override proposed financial mutations, purchase orders, and customer discounts before ledger execution.</p>
+          </div>
+          <div class="header-actions">
+            <button class="btn btn-secondary" onclick="renderApprovals()">
+              <i data-lucide="refresh-cw"></i>
+              <span>Refresh Proposals</span>
+            </button>
           </div>
         </div>
 
+        <!-- HITL Top Governance KPI Cards -->
+        <div class="kpi-grid mb-6">
+          <div class="kpi-card">
+            <div class="kpi-header">
+              <span class="kpi-title">Pending Action Proposals</span>
+              <div class="kpi-icon-box bg-amber-50 text-amber-600">
+                <i data-lucide="shield-alert"></i>
+              </div>
+            </div>
+            <div class="kpi-value text-amber-600" id="kpi-hitl-pending-count">2 Pending</div>
+            <div class="kpi-footer">
+              <span class="kpi-trend warning" id="kpi-hitl-risk-badge">High Value Overrides</span>
+              <span class="kpi-caption">awaiting human sign-off</span>
+            </div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-header">
+              <span class="kpi-title">Total Financial Impact</span>
+              <div class="kpi-icon-box bg-emerald-50 text-emerald-600">
+                <i data-lucide="dollar-sign"></i>
+              </div>
+            </div>
+            <div class="kpi-value" id="kpi-hitl-impact-amount">₹1,385,000</div>
+            <div class="kpi-footer">
+              <span class="kpi-trend positive">Combined Net Value</span>
+              <span class="kpi-caption">discounts + PO capital</span>
+            </div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-header">
+              <span class="kpi-title">Governance Protocol</span>
+              <div class="kpi-icon-box bg-indigo-50 text-indigo-600">
+                <i data-lucide="lock"></i>
+              </div>
+            </div>
+            <div class="kpi-value" style="font-size:1.15rem; font-weight:700;">Level 3 HITL</div>
+            <div class="kpi-footer">
+              <span class="kpi-trend positive">Strict Financial Isolation</span>
+              <span class="kpi-caption">zero silent mutations</span>
+            </div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-header">
+              <span class="kpi-title">Audit Trail Compliance</span>
+              <div class="kpi-icon-box bg-purple-50 text-purple-600">
+                <i data-lucide="file-check"></i>
+              </div>
+            </div>
+            <div class="kpi-value text-emerald-600" id="kpi-hitl-audited-count">100% Audited</div>
+            <div class="kpi-footer">
+              <span class="kpi-trend neutral">Aryan Thakur (Admin)</span>
+              <span class="kpi-caption">immutable journal logs</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- HITL Sub-Nav Bar -->
+        <div class="subtab-nav-bar">
+          <div class="subtab-pills">
+            <button class="subtab-pill active" id="hitl-subtab-btn-pending" onclick="switchHITLSubTab('pending')">
+              <i data-lucide="clock" style="width:15px; height:15px;"></i>
+              <span>Pending Action Proposals (<span id="pending-approval-count">2</span>)</span>
+            </button>
+            <button class="subtab-pill" id="hitl-subtab-btn-history" onclick="switchHITLSubTab('history')">
+              <i data-lucide="history" style="width:15px; height:15px;"></i>
+              <span>Approved Audit Trail Log (<span id="history-approval-count">0</span>)</span>
+            </button>
+          </div>
+
+          <div class="subtab-controls">
+            <select id="hitl-category-filter" class="table-select" onchange="renderApprovals()">
+              <option value="ALL">All Proposal Types</option>
+              <option value="DISCOUNT_OVERRIDE">Discount Overrides</option>
+              <option value="PURCHASE_ORDER_APPROVAL">Purchase Orders &amp; Procurement</option>
+              <option value="CHURN_RETENTION_INCENTIVE">Customer Retention Incentives</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- HITL Approvals Container -->
         <div class="approvals-container" id="approvals-container-view">
-          <!-- Populated by JS -->
+          <!-- Populated dynamically by JS -->
         </div>
       </section>
 

@@ -52,13 +52,59 @@ const enterpriseData = {
     {
       id: "appr-001",
       actionType: "DISCOUNT_OVERRIDE",
-      title: "15.0% Enterprise Volume Discount Override",
-      requester: "Rahul Sharma (Sales Manager)",
+      riskLevel: "HIGH RISK",
+      title: "15.0% Enterprise Volume Discount Override on SO-2026-001",
+      requester: "Rahul Sharma (VP Sales)",
+      targetModule: "Sales & Finance Ledger",
       customer: "Tata Consumer Products Ltd",
       orderId: "SO-2026-001",
+      amount: 135000,
       savings: "₹135,000.00",
       rationale: "Enterprise contract agreement for 150 terminal rollout pipeline across tier-1 regional offices.",
+      affectedLedgers: "Sales Revenue & Accounts Receivable (SO-2026-001)",
+      executionPlan: [
+        "Apply ₹135,000 discount adjustment to Invoice INV-2026-001",
+        "Post Debit to Sales Discount Expense (4020) & Credit to AR Ledger (1030)",
+        "Dispatch revised tax invoice seal to client finance desk"
+      ],
       status: "PENDING",
+    },
+    {
+      id: "appr-002",
+      actionType: "PURCHASE_ORDER_APPROVAL",
+      riskLevel: "HIGH RISK",
+      title: "Bulk Procurement & Inward Purchase Order: 50x POS-X5-001 Terminals",
+      requester: "Anita Roy (CFO / Supply Chain)",
+      targetModule: "Procurement & Inventory Asset",
+      customer: "Honeywell Mobility Solutions India Ltd",
+      orderId: "PO-2026-042",
+      amount: 1250000,
+      savings: "₹1,250,000.00 (Inward Capital)",
+      rationale: "Prevent imminent stockout on SKU POS-X5-001 (Stock depletion horizon predicted in 20 days by ML Engine).",
+      affectedLedgers: "Perpetual Inventory Asset (1040) & HDFC Bank Cash Account (1020)",
+      executionPlan: [
+        "Inward +50 units of POS-X5-001 into Mumbai DC Central Warehouse",
+        "Capitalize +₹1,250,000 to Perpetual Inventory Asset Account",
+        "Post JV-2026-042 Journal Entry and disburse vendor purchase order"
+      ],
+      status: "PENDING",
+    }
+  ],
+  approvedHistory: [
+    {
+      id: "appr-000",
+      actionType: "DISCOUNT_OVERRIDE",
+      riskLevel: "MEDIUM RISK",
+      title: "5.0% Volume Discount on INV-2026-003",
+      requester: "Rahul Sharma (VP Sales)",
+      targetModule: "Sales & Finance",
+      customer: "Croma (Infiniti Retail Ltd)",
+      amount: 44500,
+      savings: "₹44,500.00",
+      decisionBy: "Aryan Thakur (Admin)",
+      decisionDate: "2026-09-08 14:32",
+      status: "APPROVED",
+      journalVoucher: "JV-2026-004"
     }
   ],
   projects: [
@@ -1250,67 +1296,289 @@ function handleCreateEmployee(event) {
   renderEmployees();
 }
 
-// Render Approvals
+// HITL Approvals & Governance Logic
+let activeHITLSubTab = "pending";
+
+function switchHITLSubTab(tabName) {
+  activeHITLSubTab = tabName;
+
+  const pendingBtn = document.getElementById("hitl-subtab-btn-pending");
+  const historyBtn = document.getElementById("hitl-subtab-btn-history");
+
+  if (pendingBtn) pendingBtn.classList.toggle("active", tabName === "pending");
+  if (historyBtn) historyBtn.classList.toggle("active", tabName === "history");
+
+  renderApprovals();
+}
+
 function renderApprovals() {
   const container = document.getElementById("approvals-container-view");
   if (!container) return;
 
-  const countBadge = document.getElementById("pending-approval-count");
-  if (countBadge) {
-    countBadge.innerText = enterpriseData.pendingApprovals.length;
-  }
+  const categoryFilter = document.getElementById("hitl-category-filter")?.value || "ALL";
 
-  if (enterpriseData.pendingApprovals.length === 0) {
-    container.innerHTML = `
-      <div class="panel-card" style="padding: 40px; text-align: center;">
-        <i data-lucide="check-circle" style="width: 48px; height: 48px; color: var(--emerald-600); margin-bottom: 12px;"></i>
-        <h3 class="panel-title">All Action Proposals Reviewed</h3>
-        <p class="text-muted" style="font-size: 0.86rem; margin-top: 6px;">No pending Human-in-the-Loop mutations requiring your authorization.</p>
-      </div>
-    `;
-    setupLucideIcons();
+  const pendingList = enterpriseData.pendingApprovals || [];
+  const historyList = enterpriseData.approvedHistory || [];
+
+  // Update top KPI cards
+  const pendingCountEl = document.getElementById("kpi-hitl-pending-count");
+  const badgeCountEl = document.getElementById("pending-approval-count");
+  const historyCountEl = document.getElementById("history-approval-count");
+  const impactAmountEl = document.getElementById("kpi-hitl-impact-amount");
+
+  if (pendingCountEl) pendingCountEl.textContent = `${pendingList.length} Pending`;
+  if (badgeCountEl) badgeCountEl.textContent = pendingList.length;
+  if (historyCountEl) historyCountEl.textContent = historyList.length;
+
+  const totalImpact = pendingList.reduce((sum, p) => sum + (p.amount || 0), 0);
+  if (impactAmountEl) impactAmountEl.textContent = "₹" + totalImpact.toLocaleString("en-IN");
+
+  // RENDER SUB-TAB 1: PENDING PROPOSALS
+  if (activeHITLSubTab === "pending") {
+    let filteredPending = pendingList;
+    if (categoryFilter !== "ALL") {
+      filteredPending = filteredPending.filter(p => p.actionType === categoryFilter);
+    }
+
+    if (filteredPending.length === 0) {
+      container.innerHTML = `
+        <div class="panel-card" style="padding: 48px; text-align: center;">
+          <i data-lucide="shield-check" style="width: 48px; height: 48px; color: var(--emerald-600); margin-bottom: 12px;"></i>
+          <h3 class="panel-title" style="font-size:1.1rem; font-weight:700;">All Action Proposals Authorized &amp; Executed</h3>
+          <p class="text-muted" style="font-size: 0.86rem; margin-top: 6px;">Zero pending Human-in-the-Loop financial mutations requiring your sign-off.</p>
+        </div>
+      `;
+      if (window.lucide) lucide.createIcons();
+      return;
+    }
+
+    container.innerHTML = filteredPending.map(appr => {
+      const riskBadge = appr.riskLevel === 'HIGH RISK' ? '<span class="status-pill danger">🔴 HIGH RISK</span>' :
+                        '<span class="status-pill warning">🟠 MEDIUM RISK</span>';
+
+      const typeBadge = appr.actionType === 'DISCOUNT_OVERRIDE' ? 'pill-purple' :
+                        appr.actionType === 'PURCHASE_ORDER_APPROVAL' ? 'pill-indigo' : 'pill-emerald';
+
+      return `
+        <div class="panel-card" style="margin-bottom: 20px; padding: 24px; border: 1px solid var(--border-medium); box-shadow: var(--shadow-md);">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; flex-wrap: wrap; gap: 10px;">
+            <div>
+              <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+                <span class="pill-badge ${typeBadge}" style="font-size:0.7rem; font-weight:700;">${appr.actionType}</span>
+                ${riskBadge}
+                <span class="pill-badge" style="background:#F1F5F9; color:#475569; font-size:0.7rem;">Target: ${appr.targetModule || 'Finance Ledger'}</span>
+              </div>
+              <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--text-primary); margin-top: 4px; line-height: 1.3;">${appr.title}</h3>
+              <p style="font-size: 0.84rem; color: var(--text-muted); margin-top: 4px;">
+                Requested by: <strong style="color:var(--text-primary);">${appr.requester}</strong> • Entity: <strong style="color:var(--text-primary);">${appr.customer || 'Internal Vendor'}</strong>
+              </p>
+            </div>
+            <div style="text-align: right;">
+              <span class="status-pill warning" style="font-size:0.75rem;">Awaiting Human Approval</span>
+              <div style="font-size:1.05rem; font-weight:700; color:#EF4444; margin-top:6px;">${appr.savings}</div>
+            </div>
+          </div>
+
+          <div style="background: var(--bg-hover); padding: 14px 16px; border-radius: var(--radius-md); border: 1px solid var(--border-light); margin-bottom: 16px;">
+            <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 8px;">
+              <strong style="color:var(--text-primary);">AI Rationale &amp; Audit Trigger:</strong> ${appr.rationale}
+            </p>
+            <p style="font-size: 0.85rem; color: var(--text-secondary);">
+              <strong style="color:var(--text-primary);">Affected Financial Ledgers:</strong> <span class="item-bold text-indigo-600">${appr.affectedLedgers || 'General Ledger & Accounts Receivable'}</span>
+            </p>
+          </div>
+
+          ${appr.executionPlan ? `
+            <div style="margin-bottom: 18px;">
+              <h4 style="font-size: 0.78rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px; letter-spacing: 0.03em;">Execution Plan Steps:</h4>
+              <ul style="margin: 0; padding-left: 20px; font-size: 0.82rem; color: var(--text-secondary); line-height: 1.6;">
+                ${appr.executionPlan.map(step => `<li>${step}</li>`).join("")}
+              </ul>
+            </div>
+          ` : ''}
+
+          <div class="proposal-actions" style="display:flex; gap:12px; border-top:1px solid var(--border-light); padding-top:16px;">
+            <button class="btn btn-success" onclick="approveProposal('${appr.id}')" style="padding: 10px 20px; font-weight:700;">
+              <i data-lucide="check-circle"></i> Approve &amp; Execute Mutation
+            </button>
+            <button class="btn btn-danger" onclick="rejectProposal('${appr.id}')" style="padding: 10px 18px; font-weight:600;">
+              <i data-lucide="x-circle"></i> Reject Proposal
+            </button>
+          </div>
+        </div>
+      `;
+    }).join("");
+
+    if (window.lucide) lucide.createIcons();
     return;
   }
 
-  container.innerHTML = enterpriseData.pendingApprovals.map(appr => `
-    <div class="panel-card" style="margin-bottom: 16px; padding: 22px;">
-      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
-        <div>
-          <span class="proposal-badge">Pending Review • High Value Override</span>
-          <h3 style="font-size: 1.05rem; font-weight: 700; margin-top: 4px;">${appr.title}</h3>
-          <p style="font-size: 0.84rem; color: var(--text-muted);">Requested by: <strong>${appr.requester}</strong> for <strong>${appr.customer}</strong></p>
-        </div>
-        <span class="status-pill warning">Requires Approval</span>
+  // RENDER SUB-TAB 2: APPROVED AUDIT TRAIL LOG
+  let filteredHistory = historyList;
+  if (categoryFilter !== "ALL") {
+    filteredHistory = filteredHistory.filter(h => h.actionType === categoryFilter);
+  }
+
+  if (filteredHistory.length === 0) {
+    container.innerHTML = `
+      <div class="panel-card" style="padding: 40px; text-align: center;">
+        <i data-lucide="history" style="width: 40px; height: 40px; color: var(--text-muted); margin-bottom: 12px;"></i>
+        <h4 style="font-weight: 700; font-size: 1rem;">No Historical Audit Logs Yet</h4>
+        <p class="text-muted" style="font-size: 0.84rem;">Approved and rejected proposal actions will be archived here with GL voucher references.</p>
       </div>
-      <div class="proposal-details">
-        <p><strong>Rationale:</strong> ${appr.rationale}</p>
-        <p style="margin-top: 4px;"><strong>Financial Impact:</strong> Client savings of <strong class="item-bold text-rose-600">${appr.savings}</strong> against base catalog pricing.</p>
-      </div>
-      <div class="proposal-actions">
-        <button class="btn btn-success" onclick="approveProposal('${appr.id}')">
-          <i data-lucide="check"></i> Approve & Execute Mutation
-        </button>
-        <button class="btn btn-danger" onclick="rejectProposal('${appr.id}')">
-          <i data-lucide="x"></i> Reject
-        </button>
+    `;
+    if (window.lucide) lucide.createIcons();
+    return;
+  }
+
+  container.innerHTML = `
+    <div class="panel-card">
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Timestamp</th>
+              <th>Proposal Code &amp; Type</th>
+              <th>Title &amp; Target</th>
+              <th>Impact Amount</th>
+              <th>Decision Maker</th>
+              <th>Decision Status</th>
+              <th>GL Voucher Ref</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${filteredHistory.map(h => `
+              <tr>
+                <td><span style="font-size:0.8rem; color:var(--text-muted);">${h.decisionDate}</span></td>
+                <td>
+                  <span class="pill-badge pill-purple" style="font-size:0.68rem; font-weight:700;">${h.id}</span>
+                  <div style="font-size:0.72rem; color:var(--text-muted); font-weight:600; margin-top:2px;">${h.actionType}</div>
+                </td>
+                <td>
+                  <span style="font-weight:700; color:var(--text-primary); font-size:0.85rem;">${h.title}</span>
+                  <div style="font-size:0.78rem; color:var(--text-secondary);">${h.customer || h.targetModule}</div>
+                </td>
+                <td><strong class="item-bold">${h.savings || '₹' + (h.amount || 0).toLocaleString('en-IN')}</strong></td>
+                <td><span style="font-weight:600; font-size:0.82rem;">${h.decisionBy}</span></td>
+                <td>
+                  <span class="status-pill ${h.status === 'APPROVED' ? 'success' : 'danger'}" style="font-size:0.72rem;">
+                    ${h.status === 'APPROVED' ? '✓ APPROVED' : '✗ REJECTED'}
+                  </span>
+                </td>
+                <td><strong class="item-bold text-indigo-600">${h.journalVoucher || 'JV-2026-AUD'}</strong></td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
       </div>
     </div>
-  `).join("");
+  `;
 
-  setupLucideIcons();
+  if (window.lucide) lucide.createIcons();
 }
 
-// Approve / Reject Proposal
 function approveProposal(id) {
+  const proposal = enterpriseData.pendingApprovals.find(p => p.id === id);
+  if (!proposal) return;
+
+  const nowStr = new Date().toISOString().replace("T", " ").substring(0, 16);
+  const jvNum = "JV-2026-00" + (enterpriseData.finance.journalEntries.length + 1);
+
+  // EXECUTE FINANCIAL & MODULE MUTATIONS ACCORDING TO PROPOSAL TYPE
+  if (proposal.actionType === "PURCHASE_ORDER_APPROVAL") {
+    // 1. Inward Stock into Inventory
+    let stockItem = enterpriseData.stock.find(s => s.sku === "POS-X5-001");
+    if (stockItem) {
+      stockItem.qty += 50;
+      stockItem.status = "Adequate";
+    } else {
+      enterpriseData.stock.unshift({
+        sku: "POS-X5-001",
+        name: "POS Touch Terminal X5",
+        location: "Mumbai DC",
+        qty: 50,
+        reorder: 10,
+        status: "Adequate",
+        unitRate: 25000
+      });
+    }
+
+    // 2. Update Finance Balances
+    const purchaseAmount = proposal.amount || 1250000;
+    enterpriseData.finance.inventoryAsset += purchaseAmount;
+    enterpriseData.finance.bankCash = Math.max(0, enterpriseData.finance.bankCash - purchaseAmount);
+
+    // 3. Post Journal Voucher to Finance
+    enterpriseData.finance.journalEntries.unshift({
+      voucher: jvNum,
+      date: "2026-09-09",
+      narration: `HITL Approved Bulk Purchase Order Execution - ${proposal.title}`,
+      debit: "1040 • Perpetual Inventory Asset",
+      credit: "1020 • Bank HDFC Current Account",
+      amount: "₹" + purchaseAmount.toLocaleString("en-IN") + ".00",
+      status: "Audited & Balanced"
+    });
+
+    showToast(`Bulk Purchase Order Approved! +50 POS Terminals inwarded to stock. Bank Cash adjusted -₹${(purchaseAmount/1000000).toFixed(2)}M and GL Voucher ${jvNum} posted.`, "success");
+  } else if (proposal.actionType === "DISCOUNT_OVERRIDE") {
+    // Discount adjustment
+    const discountAmt = proposal.amount || 135000;
+    enterpriseData.finance.salesRevenue = Math.max(0, enterpriseData.finance.salesRevenue - discountAmt);
+
+    // Post Journal Voucher
+    enterpriseData.finance.journalEntries.unshift({
+      voucher: jvNum,
+      date: "2026-09-09",
+      narration: `HITL Approved Discount Override - ${proposal.title} (${proposal.customer})`,
+      debit: "4020 • Sales Discounts Allowed",
+      credit: "1030 • Accounts Receivable",
+      amount: "₹" + discountAmt.toLocaleString("en-IN") + ".00",
+      status: "Audited & Balanced"
+    });
+
+    showToast(`Discount Override Approved! ₹${discountAmt.toLocaleString('en-IN')} discount applied to invoice with GL Voucher ${jvNum}.`, "success");
+  } else {
+    showToast(`Action Proposal APPROVED by Aryan Thakur (Admin).`, "success");
+  }
+
+  // Remove from pending, add to audit history
   enterpriseData.pendingApprovals = enterpriseData.pendingApprovals.filter(p => p.id !== id);
+  if (!enterpriseData.approvedHistory) enterpriseData.approvedHistory = [];
+
+  enterpriseData.approvedHistory.unshift({
+    ...proposal,
+    status: "APPROVED",
+    decisionBy: "Aryan Thakur (Admin)",
+    decisionDate: nowStr,
+    journalVoucher: jvNum
+  });
+
   renderApprovals();
-  showToast("Action Proposal APPROVED: 15% discount applied to SO-2026-001 with audit log.", "success");
+  renderFinance();
+  renderInventory();
+  renderSales();
+  renderDashboard();
 }
 
 function rejectProposal(id) {
+  const proposal = enterpriseData.pendingApprovals.find(p => p.id === id);
+  if (!proposal) return;
+
+  const nowStr = new Date().toISOString().replace("T", " ").substring(0, 16);
+
   enterpriseData.pendingApprovals = enterpriseData.pendingApprovals.filter(p => p.id !== id);
+  if (!enterpriseData.approvedHistory) enterpriseData.approvedHistory = [];
+
+  enterpriseData.approvedHistory.unshift({
+    ...proposal,
+    status: "REJECTED",
+    decisionBy: "Aryan Thakur (Admin)",
+    decisionDate: nowStr,
+    journalVoucher: "N/A (Rejected)"
+  });
+
+  showToast(`Action Proposal REJECTED by Aryan Thakur (Admin). Standard catalog terms preserved.`, "danger");
   renderApprovals();
-  showToast("Action Proposal REJECTED: Order preserved at standard catalog pricing.", "danger");
 }
 
 // ==============================================================================
@@ -2055,7 +2323,29 @@ window.submitAddSalesOrder = function() {
     stockNote = ` • Stock updated: ${matchedItem.sku} (${matchedItem.location}) reduced by ${qty} units (Remaining: ${matchedItem.qty} units)`;
   }
 
-  renderSales();
+  // AUTOMATED FINANCIAL SYNCHRONIZATION FOR SALE
+  const isPaid = terms.includes("Advance");
+  enterpriseData.finance.salesRevenue += total;
+
+  if (isPaid) {
+    enterpriseData.finance.bankCash += total;
+  } else {
+    enterpriseData.finance.accountsReceivable += total;
+  }
+
+  const cogsValuation = Math.round(total * 0.65);
+  enterpriseData.finance.cogs += cogsValuation;
+
+  const jvNo = "JV-2026-00" + (enterpriseData.finance.journalEntries.length + 1);
+  enterpriseData.finance.journalEntries.unshift({
+    voucher: jvNo,
+    date: "2026-09-09",
+    narration: `Automated Sales Order Revenue Booking - ${invNumber} (${customer})`,
+    debit: isPaid ? "1020 • Bank HDFC Current Account" : "1030 • Accounts Receivable",
+    credit: "4010 • Product Sales Revenue",
+    amount: totalFormatted + ".00",
+    status: "Audited & Balanced",
+  });
   renderInventory();
   renderFinance();
   renderDashboard();
@@ -2490,6 +2780,18 @@ window.submitAddStock = function() {
   // Post addition into Finance and modules
   const assetValuationIncrease = qty * unitRate;
   enterpriseData.finance.inventoryAsset += assetValuationIncrease;
+  enterpriseData.finance.bankCash = Math.max(0, enterpriseData.finance.bankCash - assetValuationIncrease);
+
+  const jvNo = "JV-2026-00" + (enterpriseData.finance.journalEntries.length + 1);
+  enterpriseData.finance.journalEntries.unshift({
+    voucher: jvNo,
+    date: "2026-09-09",
+    narration: `Inward Stock Inventory Purchase - ${targetSku} (${qty} units @ ₹${unitRate.toLocaleString('en-IN')} from ${supplier})`,
+    debit: "1040 • Perpetual Inventory Asset",
+    credit: "1020 • Bank HDFC Current Account",
+    amount: "₹" + assetValuationIncrease.toLocaleString("en-IN") + ".00",
+    status: "Audited & Balanced",
+  });
 
   renderInventory();
   renderFinance();
