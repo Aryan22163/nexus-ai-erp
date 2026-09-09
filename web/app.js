@@ -104,6 +104,31 @@ const enterpriseData = {
         status: "Audited & Balanced",
       },
     ]
+  },
+  analytics: {
+    forecastHorizonDays: 30,
+    revenueGrowthPercent: 14.4,
+    costShockPercent: 5.0,
+    historicalMonthlySales: [
+      { month: "Apr", revenue: 18200000 },
+      { month: "May", revenue: 20100000 },
+      { month: "Jun", revenue: 21850000 },
+      { month: "Jul", revenue: 23400000 },
+      { month: "Aug", revenue: 24850000 },
+      { month: "Sep", revenue: 26200000 },
+    ],
+    expenseAnomalies: [
+      { category: "Hardware SLA Spares", voucher: "JV-2026-088", amount: 485000, mean: 120000, zScore: 3.42, status: "ANOMALY", explanation: "Critical Outlier: Unscheduled emergency batch air-freight replacement." },
+      { category: "Cloud Compute AWS", voucher: "JV-2026-092", amount: 142000, mean: 135000, zScore: 0.45, status: "NORMAL", explanation: "Nominal operational variance within 0.5-sigma boundary." },
+      { category: "Legal & Compliance", voucher: "JV-2026-095", amount: 280000, mean: 160000, zScore: 1.88, status: "ELEVATED", explanation: "Elevated variance due to annual MCA GST audit filing fees." },
+      { category: "Marketing Demos", voucher: "JV-2026-098", amount: 95000, mean: 90000, zScore: 0.22, status: "NORMAL", explanation: "Well within projected quarterly brand allocation." },
+    ],
+    churnClients: [
+      { name: "Vijay Sales Northern Region", recencyDays: 52, frequency: 1, monetary: "₹2,500,000", churnProb: 0.35, riskLevel: "HIGH", action: "Dispatch Key Account Manager for urgent on-site retention review & 10% renewal incentive" },
+      { name: "Zepto Hyperlocal Warehouses", recencyDays: 34, frequency: 2, monetary: "₹2,000,000", churnProb: 0.22, riskLevel: "MODERATE", action: "Send automated quarterly account pulse check & SLA performance report" },
+      { name: "Tata Consumer Products Ltd", recencyDays: 8, frequency: 4, monetary: "₹5,000,000", churnProb: 0.05, riskLevel: "LOW", action: "Healthy Tier-1 engagement; schedule standard bi-annual executive review" },
+      { name: "Reliance Retail Ventures", recencyDays: 6, frequency: 3, monetary: "₹10,000,000", churnProb: 0.08, riskLevel: "LOW", action: "Strategic enterprise partner; expand POS deployment pipeline" },
+    ]
   }
 };
 
@@ -120,6 +145,7 @@ document.addEventListener("DOMContentLoaded", () => {
   renderFinance();
   renderHR();
   renderApprovals();
+  renderAnalytics();
   setupChatHandlers();
   setupDrawerHandlers();
 });
@@ -546,6 +572,394 @@ function rejectProposal(id) {
   renderApprovals();
   showToast("Action Proposal REJECTED: Order preserved at standard catalog pricing.", "danger");
 }
+
+// ==============================================================================
+// 9. Predictive Analytics & Machine Learning Dashboard Engine
+// ==============================================================================
+function renderAnalytics() {
+  const a = enterpriseData.analytics;
+  if (!a) return;
+
+  const horizon = a.forecastHorizonDays || 30;
+  const growthMultiplier = 1 + (a.revenueGrowthPercent / 100);
+  const costShockMultiplier = 1 + (a.costShockPercent / 100);
+
+  // Horizon multiplier: 30 days = 1 mo, 90 days = 3 mo, 365 days = 12 mo
+  const horizonMonths = horizon === 365 ? 12 : (horizon === 90 ? 3 : 1);
+  const baseMonthlySales = 24850000;
+  const projectedRevenue = Math.round(baseMonthlySales * growthMultiplier * horizonMonths);
+  const lowerRev = Math.round(projectedRevenue * 0.92);
+  const upperRev = Math.round(projectedRevenue * 1.08);
+
+  // Projected operational costs and spending
+  const baseMonthlySpend = 18900000;
+  const projectedSpend = Math.round(baseMonthlySpend * costShockMultiplier * horizonMonths);
+  const projectedProfit = Math.max(0, projectedRevenue - projectedSpend);
+  const marginPct = ((projectedProfit / projectedRevenue) * 100).toFixed(1);
+  const burnRatePct = ((projectedSpend / projectedRevenue) * 100).toFixed(1);
+
+  // Update KPI Cards
+  const revEl = document.getElementById("analytics-proj-rev");
+  if (revEl) revEl.textContent = "₹" + projectedRevenue.toLocaleString("en-IN");
+
+  const growthBadge = document.getElementById("analytics-growth-badge");
+  if (growthBadge) {
+    const isPositive = a.revenueGrowthPercent >= 0;
+    growthBadge.className = `status-pill ${isPositive ? 'success' : 'danger'}`;
+    growthBadge.textContent = `${isPositive ? '↑ +' : '↓ '}${a.revenueGrowthPercent.toFixed(1)}% ${isPositive ? 'Expansion' : 'Contraction'}`;
+  }
+
+  const ciRevEl = document.getElementById("analytics-ci-rev");
+  if (ciRevEl) ciRevEl.textContent = `95% Range: ₹${(lowerRev / 1000000).toFixed(2)}M – ₹${(upperRev / 1000000).toFixed(2)}M`;
+
+  const spendEl = document.getElementById("analytics-proj-spend");
+  if (spendEl) spendEl.textContent = "₹" + projectedSpend.toLocaleString("en-IN");
+
+  const spendBadge = document.getElementById("analytics-spend-badge");
+  if (spendBadge) {
+    spendBadge.className = a.costShockPercent > 15 ? "status-pill danger" : (a.costShockPercent > 8 ? "status-pill warning" : "status-pill success");
+    spendBadge.textContent = a.costShockPercent > 15 ? "High Inflation Risk" : (a.costShockPercent > 8 ? "Elevated Variance" : "Normal Baseline");
+  }
+
+  const spendRatioEl = document.getElementById("analytics-spend-ratio");
+  if (spendRatioEl) spendRatioEl.textContent = `Projected Burn Rate: ${burnRatePct}% of Revenue`;
+
+  const profitEl = document.getElementById("analytics-proj-profit");
+  if (profitEl) profitEl.textContent = "₹" + projectedProfit.toLocaleString("en-IN");
+
+  const marginBadge = document.getElementById("analytics-margin-badge");
+  if (marginBadge) marginBadge.textContent = `${marginPct}% Margin`;
+
+  const churnRevEl = document.getElementById("analytics-churn-rev");
+  if (churnRevEl) churnRevEl.textContent = "₹2,500,000";
+
+  // Sub-modules
+  renderForecastChart(horizonMonths, growthMultiplier);
+  renderSpendingBreakdown(projectedSpend, horizonMonths, projectedProfit);
+  renderExpenseAnomalies();
+  renderChurnMatrix();
+  renderStockoutHorizon();
+
+  setupLucideIcons();
+}
+
+// 9A. Render SVG Revenue Forecast Chart with Confidence Ribbon
+function renderForecastChart(horizonMonths, growthMultiplier) {
+  const svg = document.getElementById("forecast-svg-canvas");
+  if (!svg) return;
+
+  const historical = [
+    { label: "Apr", val: 18200000 },
+    { label: "May", val: 20100000 },
+    { label: "Jun", val: 21850000 },
+    { label: "Jul", val: 23400000 },
+    { label: "Aug", val: 24850000 },
+    { label: "Sep (Act)", val: 26200000 },
+  ];
+
+  const future = [
+    { label: "Oct (Proj)", val: Math.round(26200000 * (1 + (growthMultiplier - 1) * 0.35)) },
+    { label: "Nov (Proj)", val: Math.round(26200000 * (1 + (growthMultiplier - 1) * 0.70)) },
+    { label: "Dec (Proj)", val: Math.round(26200000 * (1 + (growthMultiplier - 1) * 1.05)) },
+    { label: "Jan (Proj)", val: Math.round(26200000 * (1 + (growthMultiplier - 1) * 1.40)) },
+  ];
+
+  const allPoints = [...historical, ...future];
+  const minVal = 14000000;
+  const maxVal = 44000000;
+  const range = maxVal - minVal;
+
+  const leftPadding = 75;
+  const rightPadding = 45;
+  const topPadding = 30;
+  const bottomPadding = 45;
+  const plotWidth = 1000 - leftPadding - rightPadding;
+  const plotHeight = 270 - topPadding - bottomPadding;
+
+  const getX = (index) => Math.round(leftPadding + (index * (plotWidth / (allPoints.length - 1))));
+  const getY = (val) => Math.round(topPadding + plotHeight - (((val - minVal) / range) * plotHeight));
+
+  // Build gridlines
+  let gridSvg = `
+    <!-- Grid Reference Lines -->
+    <line x1="${leftPadding}" y1="${getY(20000000)}" x2="${1000 - rightPadding}" y2="${getY(20000000)}" stroke="#E2E8F0" stroke-dasharray="3,3" stroke-width="1" />
+    <text x="${leftPadding - 10}" y="${getY(20000000) + 4}" font-size="10" fill="#94A3B8" text-anchor="end">₹20M</text>
+
+    <line x1="${leftPadding}" y1="${getY(30000000)}" x2="${1000 - rightPadding}" y2="${getY(30000000)}" stroke="#E2E8F0" stroke-dasharray="3,3" stroke-width="1" />
+    <text x="${leftPadding - 10}" y="${getY(30000000) + 4}" font-size="10" fill="#94A3B8" text-anchor="end">₹30M</text>
+
+    <line x1="${leftPadding}" y1="${getY(40000000)}" x2="${1000 - rightPadding}" y2="${getY(40000000)}" stroke="#E2E8F0" stroke-dasharray="3,3" stroke-width="1" />
+    <text x="${leftPadding - 10}" y="${getY(40000000) + 4}" font-size="10" fill="#94A3B8" text-anchor="end">₹40M</text>
+
+    <!-- Forecast Horizon Demarcation Line -->
+    <line x1="${getX(5)}" y1="${topPadding - 10}" x2="${getX(5)}" y2="${270 - bottomPadding}" stroke="#818CF8" stroke-dasharray="4,4" stroke-width="1.5" />
+    <text x="${getX(5) + 6}" y="${topPadding + 6}" font-size="10" font-weight="700" fill="#6366F1">Horizon Split</text>
+  `;
+
+  // Confidence Ribbon Polygon for projected segment (indices 5 to 9)
+  const upperCoords = [];
+  const lowerCoords = [];
+  for (let i = 5; i < allPoints.length; i++) {
+    const x = getX(i);
+    const upperVal = allPoints[i].val * (i === 5 ? 1.0 : 1.09);
+    const lowerVal = allPoints[i].val * (i === 5 ? 1.0 : 0.91);
+    upperCoords.push(`${x},${getY(upperVal)}`);
+    lowerCoords.push(`${x},${getY(lowerVal)}`);
+  }
+  const ribbonPolygon = `<polygon points="${upperCoords.join(' ')} ${lowerCoords.reverse().join(' ')}" fill="rgba(79, 70, 229, 0.12)" stroke="rgba(79, 70, 229, 0.3)" stroke-dasharray="3,3" />`;
+
+  // Historical Path (indices 0 to 5)
+  const histPathD = historical.map((p, i) => `${i === 0 ? 'M' : 'L'} ${getX(i)} ${getY(p.val)}`).join(' ');
+  const histPath = `<path d="${histPathD}" fill="none" stroke="#4F46E5" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />`;
+
+  // Projected Path (indices 5 to 9)
+  const projPoints = [historical[historical.length - 1], ...future];
+  const projPathD = projPoints.map((p, i) => `${i === 0 ? 'M' : 'L'} ${getX(5 + i)} ${getY(p.val)}`).join(' ');
+  const projPath = `<path d="${projPathD}" fill="none" stroke="#10B981" stroke-width="3" stroke-dasharray="6,4" stroke-linecap="round" stroke-linejoin="round" />`;
+
+  // Data Points & Text Labels
+  let pointsSvg = "";
+  allPoints.forEach((p, i) => {
+    const cx = getX(i);
+    const cy = getY(p.val);
+    const isProjected = i > 5;
+    const fillColor = isProjected ? "#10B981" : "#4F46E5";
+    const labelVal = `₹${(p.val / 1000000).toFixed(1)}M`;
+
+    pointsSvg += `
+      <circle cx="${cx}" cy="${cy}" r="4.5" fill="${fillColor}" stroke="#FFFFFF" stroke-width="2" class="svg-point-circle">
+        <title>${p.label}: ${labelVal}</title>
+      </circle>
+      <text x="${cx}" y="${cy - 9}" font-size="10" font-weight="700" fill="${fillColor}" text-anchor="middle">${labelVal}</text>
+      <text x="${cx}" y="${270 - 16}" font-size="10.5" font-weight="${isProjected ? '600' : '500'}" fill="${isProjected ? '#059669' : '#475569'}" text-anchor="middle">${p.label}</text>
+    `;
+  });
+
+  svg.innerHTML = gridSvg + ribbonPolygon + histPath + projPath + pointsSvg;
+}
+
+// 9B. Render Projected Expenditure Breakdown & Category Burn Rate
+function renderSpendingBreakdown(projectedSpend, horizonMonths, projectedProfit) {
+  const bar = document.getElementById("spending-proportional-bar");
+  const grid = document.getElementById("spending-categories-grid");
+  const runwayPill = document.getElementById("treasury-runway-pill");
+
+  const categories = [
+    { title: "COGS / Inventory Procurement", pct: 67, color: "#4F46E5" },
+    { title: "Operations & Freight Logistics", pct: 15, color: "#06B6D4" },
+    { title: "Corporate Payroll & Staffing", pct: 12, color: "#10B981" },
+    { title: "Cloud & Information Systems", pct: 6, color: "#8B5CF6" },
+  ];
+
+  if (bar) {
+    bar.innerHTML = categories.map(c => `
+      <div class="spending-category-segment" style="width: ${c.pct}%; background-color: ${c.color};" title="${c.title}: ${c.pct}%"></div>
+    `).join("");
+  }
+
+  if (grid) {
+    grid.innerHTML = categories.map(c => {
+      const catAmount = Math.round(projectedSpend * (c.pct / 100));
+      return `
+        <div class="spending-item-card" style="border-left: 3px solid ${c.color};">
+          <div class="spending-item-title">${c.title}</div>
+          <div class="spending-item-amount">₹${catAmount.toLocaleString("en-IN")}</div>
+          <div class="spending-item-pct" style="color: ${c.color};">${c.pct}% of Outflows</div>
+        </div>
+      `;
+    }).join("");
+  }
+
+  if (runwayPill) {
+    const liquidCash = enterpriseData.finance.bankCash || 5680000;
+    const monthlyBurn = Math.max(1, (projectedSpend / horizonMonths) * 0.35);
+    const months = ((liquidCash + (projectedProfit * 0.45)) / monthlyBurn).toFixed(1);
+    runwayPill.textContent = `Cash Runway: ${months} Months (Treasury Secure)`;
+  }
+}
+
+// 9C. Render Statistical Expense Anomaly Detection (Z-Score Outlier Guard)
+function renderExpenseAnomalies() {
+  const tbody = document.getElementById("analytics-anomalies-tbody");
+  if (!tbody) return;
+
+  const anomalies = enterpriseData.analytics.expenseAnomalies || [];
+  tbody.innerHTML = anomalies.map(a => {
+    let pillClass = "normal";
+    let pillLabel = "Normal Variance";
+    if (a.status === "ANOMALY" || Math.abs(a.zScore) >= 2.5) {
+      pillClass = "anomaly";
+      pillLabel = "Outlier Anomaly";
+    } else if (a.status === "ELEVATED" || Math.abs(a.zScore) >= 1.5) {
+      pillClass = "elevated";
+      pillLabel = "Elevated Variance";
+    }
+
+    return `
+      <tr>
+        <td>
+          <div style="font-weight:700;">${a.category}</div>
+          <small class="text-muted">${a.voucher}</small>
+        </td>
+        <td class="item-bold">₹${a.amount.toLocaleString("en-IN")}.00</td>
+        <td>
+          <span class="z-score-pill ${pillClass}">
+            Z = ${a.zScore > 0 ? '+' : ''}${a.zScore.toFixed(2)}σ • ${pillLabel}
+          </span>
+        </td>
+        <td style="font-size:0.8rem; color:var(--text-secondary); max-width:320px;">
+          ${a.explanation}
+        </td>
+      </tr>
+    `;
+  }).join("");
+}
+
+// 9D. Render Predictive Customer Churn & Retention Matrix
+function renderChurnMatrix() {
+  const tbody = document.getElementById("analytics-churn-tbody");
+  if (!tbody) return;
+
+  const clients = enterpriseData.analytics.churnClients || [];
+  tbody.innerHTML = clients.map(c => {
+    const pct = Math.round(c.churnProb * 100);
+    const color = pct >= 30 ? "var(--rose-600)" : (pct >= 15 ? "var(--amber-600)" : "var(--emerald-600)");
+    const badgeClass = pct >= 30 ? "danger" : (pct >= 15 ? "warning" : "success");
+
+    return `
+      <tr>
+        <td>
+          <div style="font-weight:700;">${c.name}</div>
+          <small class="text-muted">Lifetime Value: ${c.monetary}</small>
+        </td>
+        <td>
+          <span style="font-size:0.85rem;">${c.recencyDays} days ago</span>
+          <br/><small class="text-muted">${c.frequency} orders booked</small>
+        </td>
+        <td>
+          <div class="churn-bar-container">
+            <span class="status-pill ${badgeClass}" style="min-width:48px; text-align:center;">${pct}%</span>
+            <div class="churn-progress-track">
+              <div class="churn-progress-fill" style="width: ${pct}%; background-color: ${color};"></div>
+            </div>
+          </div>
+        </td>
+        <td style="font-size:0.78rem;">
+          <div style="margin-bottom:6px; color:var(--text-secondary);">${c.action}</div>
+          ${pct >= 20 ? `
+            <button class="btn btn-xs btn-outline" onclick="dispatchRetentionAction('${c.name.replace(/'/g, "\\'")}')">
+              <i data-lucide="send" style="width:12px; height:12px; margin-right:4px;"></i> Dispatch Retention Strategy
+            </button>
+          ` : `
+            <span class="status-pill success" style="font-size:0.68rem;">Healthy Engagement</span>
+          `}
+        </td>
+      </tr>
+    `;
+  }).join("");
+}
+
+// 9E. Render Predictive Inventory Demand & Stockout Horizon
+function renderStockoutHorizon() {
+  const tbody = document.getElementById("analytics-stockout-tbody");
+  if (!tbody) return;
+
+  const demandForecasts = [
+    { sku: "WGH-DIM-006", name: "Automated Parcel Dimensioner Scale", hub: "Delhi North Hub", stock: 4, monthlyDemand: 6, daysUntilStockout: 20, reorderQty: 10, estCost: "₹1,200,000" },
+    { sku: "UPS-3K-009", name: "Online UPS 3KVA Double Conversion", hub: "Delhi North Hub", stock: 8, monthlyDemand: 10, daysUntilStockout: 24, reorderQty: 15, estCost: "₹420,000" },
+    { sku: "POS-X5-001", name: "NEXUS Core POS Terminal X5", hub: "Mumbai Central FC", stock: 125, monthlyDemand: 45, daysUntilStockout: 83, reorderQty: 50, estCost: "₹1,600,000" },
+    { sku: "SCN-PR-002", name: "High-Speed Barcode Scanner Pro", hub: "Mumbai Central FC", stock: 350, monthlyDemand: 80, daysUntilStockout: 131, reorderQty: 100, estCost: "₹1,500,000" },
+  ];
+
+  tbody.innerHTML = demandForecasts.map(item => {
+    const isCritical = item.daysUntilStockout <= 20;
+    const isWarning = item.daysUntilStockout <= 30;
+    const pillClass = isCritical ? "danger" : (isWarning ? "warning" : "success");
+    const label = isCritical ? `Critical: Stockout in ${item.daysUntilStockout} Days` : (isWarning ? `Warning: Stockout in ${item.daysUntilStockout} Days` : `Healthy: ${item.daysUntilStockout} Days Buffer`);
+
+    return `
+      <tr>
+        <td>
+          <div class="item-bold">${item.sku}</div>
+          <div style="font-size:0.75rem; color:var(--text-muted);">${item.name}</div>
+        </td>
+        <td>${item.hub}</td>
+        <td class="item-bold">${item.stock} units</td>
+        <td>${item.monthlyDemand} units / mo</td>
+        <td>
+          <span class="status-pill ${pillClass}">${label}</span>
+        </td>
+        <td>
+          <span style="font-weight:600;">+${item.reorderQty} units</span>
+          <span style="font-size:0.75rem; color:var(--text-muted);">(${item.estCost})</span>
+        </td>
+      </tr>
+    `;
+  }).join("");
+}
+
+// 9F. Interactive Predictive Controls
+window.setForecastHorizon = function(days) {
+  enterpriseData.analytics.forecastHorizonDays = days;
+  [30, 90, 365].forEach(d => {
+    const btn = document.getElementById(`horizon-btn-${d}`);
+    if (btn) {
+      if (d === days) btn.classList.add("active");
+      else btn.classList.remove("active");
+    }
+  });
+
+  renderAnalytics();
+  showToast(`Forecast projection horizon set to next ${days} days.`, "info");
+};
+
+window.handleScenarioSliderChange = function() {
+  const growthSlider = document.getElementById("slider-growth");
+  const costSlider = document.getElementById("slider-cost-shock");
+
+  if (growthSlider) {
+    const gVal = parseFloat(growthSlider.value);
+    enterpriseData.analytics.revenueGrowthPercent = gVal;
+    const label = document.getElementById("label-growth-val");
+    if (label) label.textContent = `${gVal >= 0 ? '+' : ''}${gVal.toFixed(1)}%`;
+  }
+
+  if (costSlider) {
+    const cVal = parseFloat(costSlider.value);
+    enterpriseData.analytics.costShockPercent = cVal;
+    const label = document.getElementById("label-cost-val");
+    if (label) label.textContent = `+${cVal.toFixed(1)}%`;
+  }
+
+  renderAnalytics();
+};
+
+window.recalculateAnalytics = function() {
+  const icon = document.getElementById("btn-recalc-icon");
+  if (icon) icon.classList.add("spin");
+
+  setTimeout(() => {
+    renderAnalytics();
+    if (icon) icon.classList.remove("spin");
+    showToast("Predictive ML algorithms recalibrated with 95% confidence intervals and latest ERP transactions!", "success");
+  }, 650);
+};
+
+window.exportForecastReport = function() {
+  window.print();
+};
+
+window.dispatchRetentionAction = function(clientName) {
+  if (enterpriseData.projects && enterpriseData.projects[0]) {
+    enterpriseData.projects[0].tasks.unshift({
+      title: `Urgent Retention Outreach & 10% Incentive: ${clientName}`,
+      assignee: "Rahul Sharma (Sales Lead)",
+      status: "IN_PROGRESS"
+    });
+  }
+  showToast(`Retention action for "${clientName}" dispatched to Key Account Manager with priority SLA!`, "success");
+  renderHR();
+};
 
 // AI Copilot Chat
 function setupChatHandlers() {

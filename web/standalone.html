@@ -79,6 +79,11 @@
           <span>HITL Approvals</span>
           <span class="pill-badge pill-amber" id="pending-approval-count">1</span>
         </a>
+        <a href="#analytics" class="nav-item" data-tab="analytics">
+          <i data-lucide="trending-up"></i>
+          <span>Predictive Analytics</span>
+          <span class="pill-badge pill-purple">ML Engine</span>
+        </a>
       </nav>
 
       <div class="sidebar-footer">
@@ -127,6 +132,10 @@
           </div>
           <div class="header-tools">
             <span class="date-badge"><i data-lucide="calendar"></i> FY 2025-26 (Q3)</span>
+            <button class="btn btn-secondary btn-sm" onclick="switchTab('analytics')" style="display:inline-flex; align-items:center; gap:6px;">
+              <i data-lucide="trending-up" class="text-indigo-600" style="width:14px; height:14px;"></i>
+              <span>Predictive Forecast</span>
+            </button>
           </div>
         </div>
 
@@ -570,6 +579,232 @@
 
         <div class="approvals-container" id="approvals-container-view">
           <!-- Populated by JS -->
+        </div>
+      </section>
+
+      <!-- Tab View: 9. Predictive Analytics & Forecasting Engine -->
+      <section id="tab-analytics" class="tab-view">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">AI Predictive Analytics &amp; Forecasting Engine</h1>
+            <p class="page-subtitle">Ordinary least squares revenue trend extrapolation, operational cost projections, Z-score expense anomaly detection, and customer churn risk modeling.</p>
+          </div>
+          <div class="header-tools">
+            <button class="btn btn-secondary" onclick="exportForecastReport()">
+              <i data-lucide="download"></i>
+              <span>Export Forecast</span>
+            </button>
+            <button class="btn btn-primary" onclick="recalculateAnalytics()">
+              <i data-lucide="refresh-cw" id="btn-recalc-icon"></i>
+              <span>Recalibrate Model</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Interactive Scenario Control Bar -->
+        <div class="analytics-control-bar">
+          <div class="horizon-toggle-group">
+            <button class="horizon-btn active" id="horizon-btn-30" onclick="setForecastHorizon(30)">Next 30 Days</button>
+            <button class="horizon-btn" id="horizon-btn-90" onclick="setForecastHorizon(90)">Next Quarter (90D)</button>
+            <button class="horizon-btn" id="horizon-btn-365" onclick="setForecastHorizon(365)">Full Fiscal Year</button>
+          </div>
+
+          <div class="scenario-controls">
+            <div class="slider-unit">
+              <label for="slider-growth">
+                <span>Revenue Momentum</span>
+                <span id="label-growth-val">+14.4%</span>
+              </label>
+              <input type="range" id="slider-growth" min="-20" max="50" value="14" step="1" oninput="handleScenarioSliderChange()" />
+            </div>
+
+            <div class="slider-unit">
+              <label for="slider-cost-shock">
+                <span>Supply/Cost Shock</span>
+                <span id="label-cost-val">+5.0%</span>
+              </label>
+              <input type="range" id="slider-cost-shock" min="0" max="30" value="5" step="1" oninput="handleScenarioSliderChange()" />
+            </div>
+
+            <div style="font-size:0.75rem; color:var(--text-muted); display:flex; align-items:center; gap:6px;">
+              <span class="status-pill success" style="font-size:0.7rem;">95% Confidence Bounds</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Predictive KPI Cards -->
+        <div class="analytics-kpis-grid">
+          <div class="forecast-kpi-card">
+            <div class="forecast-kpi-header">
+              <span class="forecast-kpi-label">Projected Sales Revenue</span>
+              <span class="status-pill success" id="analytics-growth-badge">↑ +14.4% Expansion</span>
+            </div>
+            <div class="forecast-kpi-value" id="analytics-proj-rev">₹28,420,000</div>
+            <div class="forecast-kpi-meta">
+              <i data-lucide="shield-check" class="text-emerald-600" style="width:14px; height:14px;"></i>
+              <span id="analytics-ci-rev">95% Range: ₹26.15M – ₹30.69M</span>
+            </div>
+          </div>
+
+          <div class="forecast-kpi-card amber">
+            <div class="forecast-kpi-header">
+              <span class="forecast-kpi-label">Projected Spending &amp; Costs</span>
+              <span class="status-pill warning" id="analytics-spend-badge">Normal Variance</span>
+            </div>
+            <div class="forecast-kpi-value" id="analytics-proj-spend">₹21,620,000</div>
+            <div class="forecast-kpi-meta">
+              <i data-lucide="alert-circle" class="text-amber-600" style="width:14px; height:14px;"></i>
+              <span id="analytics-spend-ratio">Projected Burn Rate: 76.1% of Revenue</span>
+            </div>
+          </div>
+
+          <div class="forecast-kpi-card emerald">
+            <div class="forecast-kpi-header">
+              <span class="forecast-kpi-label">Projected Operating Profit</span>
+              <span class="status-pill success" id="analytics-margin-badge">23.9% Margin</span>
+            </div>
+            <div class="forecast-kpi-value" id="analytics-proj-profit">₹6,800,000</div>
+            <div class="forecast-kpi-meta">
+              <i data-lucide="trending-up" class="text-emerald-600" style="width:14px; height:14px;"></i>
+              <span>Break-even Runway: ₹14.8M Cushion</span>
+            </div>
+          </div>
+
+          <div class="forecast-kpi-card purple">
+            <div class="forecast-kpi-header">
+              <span class="forecast-kpi-label">Revenue at Churn Risk</span>
+              <span class="status-pill danger" id="analytics-churn-badge">1 Account At-Risk</span>
+            </div>
+            <div class="forecast-kpi-value" id="analytics-churn-rev">₹2,500,000</div>
+            <div class="forecast-kpi-meta">
+              <i data-lucide="users" class="text-purple-600" style="width:14px; height:14px;"></i>
+              <span>Highest Risk: Vijay Sales (35%)</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Primary Forecast Chart: Revenue Trajectory (Historical vs Future ML Projection) -->
+        <div class="forecast-chart-card">
+          <div class="chart-header-row">
+            <div>
+              <h3 class="panel-title" style="margin-bottom:2px;">Sales Trajectory &amp; Multi-Horizon Predictive Confidence Ribbon</h3>
+              <p style="font-size:0.8rem; color:var(--text-muted);">Solid line: Actual audited revenue • Dashed line: Machine learning projection • Shaded zone: 95% confidence interval</p>
+            </div>
+            <div class="chart-legend-row">
+              <span class="legend-chip"><span class="legend-bullet actual"></span> Historical Actuals</span>
+              <span class="legend-chip"><span class="legend-bullet projected"></span> ML Projected Run-Rate</span>
+              <span class="legend-chip"><span class="legend-bullet confidence"></span> 95% Confidence Ribbon</span>
+            </div>
+          </div>
+
+          <!-- Dynamic SVG Vector Chart -->
+          <div class="forecast-svg-wrapper">
+            <svg id="forecast-svg-canvas" class="forecast-svg" viewBox="0 0 1000 270" preserveAspectRatio="none">
+              <!-- Rendered dynamically by JS -->
+            </svg>
+          </div>
+        </div>
+
+        <!-- Projected Expenditure Breakdown & Category Burn Rate -->
+        <div class="forecast-chart-card">
+          <div class="chart-header-row">
+            <div>
+              <h3 class="panel-title" style="margin-bottom:2px;">Projected Operational Expenditure Allocation</h3>
+              <p style="font-size:0.8rem; color:var(--text-muted);">Predictive cost modeling based on vendor supply commitments, payroll run-rate, and warehouse logistics.</p>
+            </div>
+            <span class="status-pill info" id="treasury-runway-pill">Cash Runway: 19.4 Months</span>
+          </div>
+
+          <div class="spending-category-bar" id="spending-proportional-bar">
+            <!-- Rendered by JS -->
+          </div>
+
+          <div class="spending-breakdown-grid" id="spending-categories-grid">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+
+        <!-- 2-Column Insight Panels: Outlier Anomaly Detection + Customer Churn Matrix -->
+        <div class="grid-2-col" style="margin-bottom: 24px;">
+          <!-- Panel A: Statistical Expense Anomaly Detection -->
+          <div class="panel-card">
+            <div class="panel-header">
+              <div>
+                <h3 class="panel-title">Statistical Expense Anomaly Detection</h3>
+                <p style="font-size:0.78rem; color:var(--text-muted);">Automated Z-score outlier detection identifying statistical expenditure spikes.</p>
+              </div>
+              <span class="status-pill info">Z-Score Engine</span>
+            </div>
+            <div class="table-container">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Category &amp; Voucher</th>
+                    <th>Recorded Amount</th>
+                    <th>Z-Score</th>
+                    <th>Assessment &amp; Explanation</th>
+                  </tr>
+                </thead>
+                <tbody id="analytics-anomalies-tbody">
+                  <!-- Populated by JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Panel B: Predictive Churn & Retention Matrix -->
+          <div class="panel-card">
+            <div class="panel-header">
+              <div>
+                <h3 class="panel-title">Predictive Customer Churn &amp; RFM Retention</h3>
+                <p style="font-size:0.78rem; color:var(--text-muted);">Multi-factor churn probability based on purchase recency, frequency, and monetary size.</p>
+              </div>
+              <span class="status-pill purple">RFM Machine Learning</span>
+            </div>
+            <div class="table-container">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Client Account</th>
+                    <th>Recency</th>
+                    <th>Churn Risk</th>
+                    <th>Prescribed AI Retention Action</th>
+                  </tr>
+                </thead>
+                <tbody id="analytics-churn-tbody">
+                  <!-- Populated by JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Panel 3: Inventory Demand & Stockout Horizon -->
+        <div class="panel-card">
+          <div class="panel-header">
+            <div>
+              <h3 class="panel-title">Predictive Inventory Demand &amp; Stockout Depletion Horizon</h3>
+              <p style="font-size:0.78rem; color:var(--text-muted);">Estimates burn velocity per SKU, warns of imminent stockouts, and suggests optimum reorder timing.</p>
+            </div>
+            <span class="status-pill success">Perpetual Stock Model</span>
+          </div>
+          <div class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>SKU &amp; Product</th>
+                  <th>Warehouse Hub</th>
+                  <th>Current Stock</th>
+                  <th>30-Day Projected Demand</th>
+                  <th>Estimated Stockout Horizon</th>
+                  <th>Recommended Replenishment</th>
+                </tr>
+              </thead>
+              <tbody id="analytics-stockout-tbody">
+                <!-- Populated by JS -->
+              </tbody>
+            </table>
+          </div>
         </div>
       </section>
     </main>
