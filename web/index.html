@@ -15,7 +15,7 @@
   <script src="https://unpkg.com/lucide@latest"></script>
 
   <!-- Core Vanilla CSS Design System -->
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=2.0">
 </head>
 <body>
   <div class="app-container">
@@ -295,7 +295,7 @@
             <p class="page-subtitle">Track customer 360 profiles, stakeholder contacts, pipeline opportunities, and churn risks.</p>
           </div>
           <div class="header-tools">
-            <button class="btn btn-primary" onclick="alert('New Customer modal ready')">
+            <button class="btn btn-primary" onclick="openModal('modal-add-customer')">
               <i data-lucide="user-plus"></i>
               <span>Add Customer</span>
             </button>
@@ -337,7 +337,7 @@
             <p class="page-subtitle">Manage quotations, confirmed sales contracts, GST tax invoices, and bank settlements.</p>
           </div>
           <div class="header-tools">
-            <button class="btn btn-primary" onclick="alert('Create Sales Order modal ready')">
+            <button class="btn btn-primary" onclick="openModal('modal-add-sales-order')">
               <i data-lucide="plus"></i>
               <span>Create Sales Order</span>
             </button>
@@ -377,7 +377,7 @@
             <p class="page-subtitle">Perpetual inventory tracking, multi-warehouse valuation, and movement audit trails.</p>
           </div>
           <div class="header-tools">
-            <button class="btn btn-secondary" onclick="alert('Stock Transfer modal ready')">
+            <button class="btn btn-secondary" onclick="openModal('modal-stock-transfer')">
               <i data-lucide="arrow-left-right"></i>
               <span>Transfer Stock</span>
             </button>
@@ -416,7 +416,7 @@
             <p class="page-subtitle">Strict double-entry bookkeeping, balanced journal vouchers, and automated financial statements.</p>
           </div>
           <div class="header-tools">
-            <button class="btn btn-secondary" onclick="alert('New Journal Entry modal ready')">
+            <button class="btn btn-secondary" onclick="openModal('modal-journal-entry')">
               <i data-lucide="plus"></i>
               <span>Post Journal Entry</span>
             </button>
@@ -561,12 +561,245 @@
       <input type="text" id="drawer-input" placeholder="Ask question..." />
       <button class="btn btn-primary" id="drawer-send-btn"><i data-lucide="arrow-right"></i></button>
     </div>
+  <!-- Modal 1: Add Customer -->
+  <div class="modal-backdrop" id="modal-add-customer">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title">
+          <i data-lucide="building-2" class="text-indigo-600"></i>
+          <span>Register New Client Account</span>
+        </div>
+        <button class="modal-close-btn" onclick="closeModal('modal-add-customer')">&times;</button>
+      </div>
+      <form id="form-add-customer" onsubmit="event.preventDefault(); submitAddCustomer();">
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="cust-name">Company Legal Name *</label>
+            <input type="text" id="cust-name" placeholder="e.g. Adani Logistics Ltd" required />
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="cust-segment">Enterprise Segment</label>
+              <select id="cust-segment">
+                <option value="Enterprise (Tier 1)">Enterprise (Tier 1)</option>
+                <option value="Mid-Market Retail">Mid-Market Retail</option>
+                <option value="Quick-Commerce SMB">Quick-Commerce SMB</option>
+                <option value="Strategic Global">Strategic Global</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="cust-credit-limit">Credit Limit (₹)</label>
+              <input type="number" id="cust-credit-limit" value="3500000" min="50000" step="50000" required />
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="cust-contact">Primary Contact Person *</label>
+              <input type="text" id="cust-contact" placeholder="e.g. Rajesh Kumar" required />
+            </div>
+            <div class="form-group">
+              <label for="cust-email">Official Email</label>
+              <input type="email" id="cust-email" placeholder="rajesh@adani.com" />
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="cust-phone">Phone Number</label>
+              <input type="tel" id="cust-phone" placeholder="+91 98765 43210" />
+            </div>
+            <div class="form-group">
+              <label for="cust-city">Operating Region / City</label>
+              <input type="text" id="cust-city" placeholder="Ahmedabad, Gujarat" />
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('modal-add-customer')">Cancel</button>
+          <button type="submit" class="btn btn-primary">
+            <i data-lucide="check"></i>
+            <span>Create Client Record</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 2: Create Sales Order -->
+  <div class="modal-backdrop" id="modal-add-sales-order">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title">
+          <i data-lucide="shopping-bag" class="text-indigo-600"></i>
+          <span>Create Enterprise Sales Order</span>
+        </div>
+        <button class="modal-close-btn" onclick="closeModal('modal-add-sales-order')">&times;</button>
+      </div>
+      <form id="form-add-sales-order" onsubmit="event.preventDefault(); submitAddSalesOrder();">
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="so-customer">Customer Account *</label>
+            <select id="so-customer" required>
+              <option value="Tata Consumer Products Ltd">Tata Consumer Products Ltd</option>
+              <option value="Reliance Retail Ventures">Reliance Retail Ventures</option>
+              <option value="Croma Electronics (Infiniti)">Croma Electronics (Infiniti)</option>
+              <option value="Zepto Quick Commerce">Zepto Quick Commerce</option>
+              <option value="Infosys BPM Facilities">Infosys BPM Facilities</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="so-product">Product Line *</label>
+              <select id="so-product" required>
+                <option value="POS Terminal Duo (POS-X5-001)">POS Terminal Duo (POS-X5-001)</option>
+                <option value="Thermal Receipt Printer (PRN-TH-003)">Thermal Receipt Printer (PRN-TH-003)</option>
+                <option value="2D Handheld Imager (SCN-2D-002)">2D Handheld Imager (SCN-2D-002)</option>
+                <option value="Heavy-Duty Cash Drawer (CSH-DRW-005)">Heavy-Duty Cash Drawer (CSH-DRW-005)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="so-qty">Quantity *</label>
+              <input type="number" id="so-qty" value="15" min="1" required />
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="so-price">Unit Price (₹) *</label>
+              <input type="number" id="so-price" value="18500" min="100" step="100" required />
+            </div>
+            <div class="form-group">
+              <label for="so-terms">Payment Terms</label>
+              <select id="so-terms">
+                <option value="Net 30 Days">Net 30 Days</option>
+                <option value="Net 15 Days">Net 15 Days</option>
+                <option value="100% Advance">100% Advance</option>
+                <option value="Against Irrevocable LC">Against Irrevocable LC</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('modal-add-sales-order')">Cancel</button>
+          <button type="submit" class="btn btn-primary">
+            <i data-lucide="check-circle-2"></i>
+            <span>Confirm & Book Order</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 3: Stock Transfer -->
+  <div class="modal-backdrop" id="modal-stock-transfer">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title">
+          <i data-lucide="arrow-left-right" class="text-indigo-600"></i>
+          <span>Inter-Warehouse Stock Transfer</span>
+        </div>
+        <button class="modal-close-btn" onclick="closeModal('modal-stock-transfer')">&times;</button>
+      </div>
+      <form id="form-stock-transfer" onsubmit="event.preventDefault(); submitStockTransfer();">
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="transfer-product">Stock Item *</label>
+            <select id="transfer-product" required>
+              <option value="POS-X5-001 - POS Terminal Duo">POS-X5-001 — POS Terminal Duo</option>
+              <option value="SCN-2D-002 - 2D Handheld Scanner">SCN-2D-002 — 2D Handheld Scanner</option>
+              <option value="PRN-TH-003 - High-Speed Receipt Printer">PRN-TH-003 — High-Speed Receipt Printer</option>
+              <option value="WGH-DIM-006 - Automated Dimensioner">WGH-DIM-006 — Automated Dimensioner</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="transfer-from">Source Warehouse *</label>
+              <select id="transfer-from" required>
+                <option value="Mumbai Central FC">Mumbai Central FC</option>
+                <option value="Bengaluru Tech Depot">Bengaluru Tech Depot</option>
+                <option value="Delhi North Logistics">Delhi North Logistics</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="transfer-to">Destination Warehouse *</label>
+              <select id="transfer-to" required>
+                <option value="Delhi North Logistics">Delhi North Logistics</option>
+                <option value="Mumbai Central FC">Mumbai Central FC</option>
+                <option value="Bengaluru Tech Depot">Bengaluru Tech Depot</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="transfer-qty">Quantity to Dispatch *</label>
+            <input type="number" id="transfer-qty" value="20" min="1" required />
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('modal-stock-transfer')">Cancel</button>
+          <button type="submit" class="btn btn-primary">
+            <i data-lucide="truck"></i>
+            <span>Dispatch Stock Transfer</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 4: Post Journal Entry -->
+  <div class="modal-backdrop" id="modal-journal-entry">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title">
+          <i data-lucide="receipt" class="text-indigo-600"></i>
+          <span>Post Balanced Journal Voucher</span>
+        </div>
+        <button class="modal-close-btn" onclick="closeModal('modal-journal-entry')">&times;</button>
+      </div>
+      <form id="form-journal-entry" onsubmit="event.preventDefault(); submitJournalEntry();">
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="jv-title">Narration / Entry Memo *</label>
+            <input type="text" id="jv-title" placeholder="e.g. Cloud Infrastructure Services Payment" required />
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="jv-debit">Debit Account (Dr) *</label>
+              <select id="jv-debit" required>
+                <option value="5000 - Operating Expenses (OPEX)">5000 - Operating Expenses (OPEX)</option>
+                <option value="1200 - Inventory Asset">1200 - Inventory Asset</option>
+                <option value="1300 - Accounts Receivable">1300 - Accounts Receivable</option>
+                <option value="1110 - HDFC Current Account">1110 - HDFC Current Account</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="jv-credit">Credit Account (Cr) *</label>
+              <select id="jv-credit" required>
+                <option value="1110 - HDFC Current Account">1110 - HDFC Current Account</option>
+                <option value="2100 - Accounts Payable">2100 - Accounts Payable</option>
+                <option value="4000 - Sales Revenue">4000 - Sales Revenue</option>
+                <option value="3000 - Common Stock Equity">3000 - Common Stock Equity</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="jv-amount">Transaction Amount (₹) *</label>
+            <input type="number" id="jv-amount" value="85000" min="1" step="100" required />
+            <small style="font-size:0.75rem; color:var(--emerald-600); margin-top:4px;">Invariance guarantee: Dr ₹85,000.00 = Cr ₹85,000.00 (Balanced)</small>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('modal-journal-entry')">Cancel</button>
+          <button type="submit" class="btn btn-primary">
+            <i data-lucide="book-open-check"></i>
+            <span>Post to General Ledger</span>
+          </button>
+        </div>
+      </form>
+    </div>
   </div>
 
   <!-- Notification Toast Container -->
   <div class="toast-container" id="toast-container"></div>
 
   <!-- Core JavaScript Application Logic -->
-  <script src="app.js"></script>
+  <script src="app.js?v=2.0"></script>
 </body>
 </html>

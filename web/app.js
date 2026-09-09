@@ -639,3 +639,207 @@ function showToast(message, type = "success") {
 function escapeHtml(str) {
   return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
+
+// ==============================================================================
+// Modal Window Management & Form Submissions
+// ==============================================================================
+
+const DATA = enterpriseData;
+window.DATA = enterpriseData;
+
+window.openModal = function(modalId) {
+  const modal = document.getElementById(modalId);
+  if (modal) {
+    modal.classList.add("active");
+    setupLucideIcons();
+    const firstInput = modal.querySelector("input, select");
+    if (firstInput) setTimeout(() => firstInput.focus(), 50);
+  }
+};
+
+window.closeModal = function(modalId) {
+  const modal = document.getElementById(modalId);
+  if (modal) {
+    modal.classList.remove("active");
+  }
+};
+
+// Global escape key and backdrop click listener
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") {
+    document.querySelectorAll(".modal-backdrop.active").forEach((m) => {
+      m.classList.remove("active");
+    });
+  }
+});
+
+document.addEventListener("click", (e) => {
+  if (e.target.classList && e.target.classList.contains("modal-backdrop")) {
+    e.target.classList.remove("active");
+  }
+});
+
+// 1. Submit: Add Customer (CRM)
+window.submitAddCustomer = function() {
+  const name = document.getElementById("cust-name").value.trim();
+  const segment = document.getElementById("cust-segment").value;
+  const contact = document.getElementById("cust-contact").value.trim();
+  const email = document.getElementById("cust-email").value.trim();
+  const phone = document.getElementById("cust-phone").value.trim();
+  const limitVal = parseFloat(document.getElementById("cust-credit-limit").value) || 3500000;
+  const city = document.getElementById("cust-city").value.trim();
+
+  if (!name || !contact) {
+    showToast("Please enter company name and primary contact person.", "danger");
+    return;
+  }
+
+  const creditFormatted = "₹" + (limitVal / 1000000).toFixed(2) + "M";
+
+  const newCustomer = {
+    name: name,
+    segment: segment.includes("Enterprise") ? "Enterprise" : "SMB",
+    contact: `${contact} (${email || phone || 'Direct'})`,
+    credit: creditFormatted,
+    churn: "3%",
+    health: "Healthy",
+  };
+
+  enterpriseData.customers.unshift(newCustomer);
+  renderCRM();
+
+  // Highlight the newly created row
+  const tbody = document.getElementById("crm-table-tbody");
+  if (tbody && tbody.firstElementChild) {
+    tbody.firstElementChild.style.backgroundColor = "rgba(79, 70, 229, 0.08)";
+    tbody.firstElementChild.style.transition = "background-color 2s ease";
+    setTimeout(() => {
+      if (tbody.firstElementChild) tbody.firstElementChild.style.backgroundColor = "";
+    }, 2500);
+  }
+
+  // Add customer to Sales Order dropdown
+  const soCustomer = document.getElementById("so-customer");
+  if (soCustomer) {
+    const opt = document.createElement("option");
+    opt.value = name;
+    opt.textContent = name;
+    soCustomer.prepend(opt);
+    soCustomer.value = name;
+  }
+
+  document.getElementById("form-add-customer").reset();
+  closeModal("modal-add-customer");
+  showToast(`New client "${name}" registered successfully in CRM!`, "success");
+};
+
+// 2. Submit: Create Sales Order
+window.submitAddSalesOrder = function() {
+  const customer = document.getElementById("so-customer").value;
+  const product = document.getElementById("so-product").value;
+  const qty = parseInt(document.getElementById("so-qty").value) || 1;
+  const price = parseFloat(document.getElementById("so-price").value) || 15000;
+  const terms = document.getElementById("so-terms").value;
+
+  const total = qty * price;
+  const totalFormatted = "₹" + total.toLocaleString("en-IN");
+  const invNumber = "INV-2026-00" + (enterpriseData.invoices.length + 1);
+
+  const newInvoice = {
+    number: invNumber,
+    customer: customer,
+    issueDate: "2026-09-09",
+    dueDate: "2026-10-09",
+    amount: totalFormatted,
+    status: terms.includes("Advance") ? "PAID" : "UNPAID",
+  };
+
+  enterpriseData.invoices.unshift(newInvoice);
+  enterpriseData.orders.unshift({
+    id: "SO-2026-00" + (enterpriseData.orders.length + 1),
+    customer: customer,
+    date: "2026-09-09",
+    amount: totalFormatted,
+    status: "CONFIRMED",
+  });
+
+  renderSales();
+
+  // Highlight first row
+  const tbody = document.getElementById("sales-invoices-tbody");
+  if (tbody && tbody.firstElementChild) {
+    tbody.firstElementChild.style.backgroundColor = "rgba(79, 70, 229, 0.08)";
+    tbody.firstElementChild.style.transition = "background-color 2s ease";
+    setTimeout(() => {
+      if (tbody.firstElementChild) tbody.firstElementChild.style.backgroundColor = "";
+    }, 2500);
+  }
+
+  document.getElementById("form-add-sales-order").reset();
+  closeModal("modal-add-sales-order");
+  showToast(`Sales invoice ${invNumber} generated for ${customer}!`, "success");
+};
+
+// 3. Submit: Stock Transfer
+window.submitStockTransfer = function() {
+  const product = document.getElementById("transfer-product").value;
+  const from = document.getElementById("transfer-from").value;
+  const to = document.getElementById("transfer-to").value;
+  const qty = parseInt(document.getElementById("transfer-qty").value) || 10;
+
+  if (from === to) {
+    showToast("Source and destination warehouses must be different.", "danger");
+    return;
+  }
+
+  const sku = product.split(" - ")[0] || "SKU-TRF";
+  const name = product.split(" - ")[1] || product;
+
+  // Add stock transfer record into stock array
+  enterpriseData.stock.unshift({
+    sku: sku,
+    name: `${name} (Transfer)`,
+    location: to,
+    qty: qty,
+    reorder: 5,
+    status: "Adequate",
+  });
+
+  renderInventory();
+
+  // Highlight first row
+  const tbody = document.getElementById("inventory-table-tbody");
+  if (tbody && tbody.firstElementChild) {
+    tbody.firstElementChild.style.backgroundColor = "rgba(16, 185, 129, 0.08)";
+    tbody.firstElementChild.style.transition = "background-color 2s ease";
+    setTimeout(() => {
+      if (tbody.firstElementChild) tbody.firstElementChild.style.backgroundColor = "";
+    }, 2500);
+  }
+
+  document.getElementById("form-stock-transfer").reset();
+  closeModal("modal-stock-transfer");
+  showToast(`Dispatched transfer of ${qty} units to ${to}!`, "success");
+};
+
+// 4. Submit: Journal Entry
+window.submitJournalEntry = function() {
+  const title = document.getElementById("jv-title").value.trim();
+  const debit = document.getElementById("jv-debit").value;
+  const credit = document.getElementById("jv-credit").value;
+  const amount = parseFloat(document.getElementById("jv-amount").value) || 50000;
+
+  if (!title) {
+    showToast("Please enter an entry narration memo.", "danger");
+    return;
+  }
+
+  const amountFormatted = "₹" + amount.toLocaleString("en-IN");
+  const jvNo = "JV-2026-00" + Math.floor(10 + Math.random() * 90);
+
+  document.getElementById("form-journal-entry").reset();
+  closeModal("modal-journal-entry");
+  showToast(`Balanced Journal Voucher ${jvNo} (${amountFormatted}) posted! (Dr: ${debit.split(' - ')[1] || debit} / Cr: ${credit.split(' - ')[1] || credit})`, "success");
+};
+
+
