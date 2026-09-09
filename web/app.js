@@ -293,6 +293,7 @@ document.addEventListener("DOMContentLoaded", () => {
   setupLucideIcons();
   checkApiConnectivity();
   updateStockDropdowns();
+  updateCustomerDropdowns();
   renderDashboard();
   renderCRM();
   renderSales();
@@ -510,9 +511,14 @@ function renderSales() {
         </td>
         <td>
           <div style="display:inline-flex; align-items:center; gap:6px;">
-            <button class="btn btn-xs btn-outline" onclick="openReceiptModal('${ord.invoiceNumber || 'INV-2026-001'}')" title="View Linked GST Invoice">
+            <button class="btn btn-xs btn-outline" onclick="openReceiptModal('${ord.invoiceNumber || 'INV-2026-001'}')" title="View Linked GST Invoice & Receipt">
               <i data-lucide="file-text" style="width:13px; height:13px; margin-right:4px;"></i> Invoice
             </button>
+            ${ord.paymentStatus !== 'PAID' ? `
+              <button class="btn-pay-settlement" onclick="quickSettleOrder('${ord.id}')" title="Realize Revenue & Settle Payment">
+                <i data-lucide="credit-card" style="width:12px; height:12px;"></i> Settle Payment
+              </button>
+            ` : ''}
             ${ord.status !== 'FULFILLED' ? `
               <button class="btn btn-xs btn-secondary" onclick="fulfillSalesOrder('${ord.id}')" title="Mark Order Fulfilled & Dispatched">
                 <i data-lucide="truck" style="width:13px; height:13px; margin-right:4px;"></i> Fulfill
@@ -596,6 +602,42 @@ window.fulfillSalesOrder = function(orderId) {
     renderDashboard();
     showToast(`Sales Order ${orderId} status updated to FULFILLED!`, "success");
   }
+};
+
+window.quickSettleOrder = function(orderId) {
+  const ord = enterpriseData.orders.find(o => o.id === orderId);
+  if (!ord) return;
+
+  ord.paymentStatus = "PAID";
+  
+  // Find linked invoice
+  const inv = enterpriseData.invoices.find(i => i.number === ord.invoiceNumber || (i.customer === ord.customer && i.status === "UNPAID"));
+  if (inv) {
+    inv.status = "PAID";
+    inv.settlementDate = "2026-09-09";
+    inv.settlementRef = "HDFC-NEFT-" + Math.floor(10000000 + Math.random() * 90000000);
+    inv.settlementMethod = "NEFT / RTGS Online";
+  }
+
+  const rawAmt = parseFloat(ord.amount.replace(/[^0-9.]/g, "")) || 0;
+  enterpriseData.finance.bankCash += rawAmt;
+  enterpriseData.finance.accountsReceivable = Math.max(0, enterpriseData.finance.accountsReceivable - rawAmt);
+
+  const jvNum = "JV-2026-00" + (enterpriseData.finance.journalEntries.length + 1);
+  enterpriseData.finance.journalEntries.unshift({
+    voucher: jvNum,
+    date: "2026-09-09",
+    narration: `Quick Revenue Realization - ${ord.customer} (${ord.id})`,
+    debit: "1020 • Bank HDFC Current Account",
+    credit: "1030 • Accounts Receivable",
+    amount: ord.amount.includes("₹") ? ord.amount : "₹" + ord.amount,
+    status: "Audited & Balanced",
+  });
+
+  renderSales();
+  renderFinance();
+  renderDashboard();
+  showToast(`Revenue realized for Sales Order ${ord.id}! ${ord.amount} credited into HDFC Treasury Bank Account.`, "success");
 };
 
 // Render Inventory
@@ -2258,6 +2300,10 @@ window.DATA = enterpriseData;
 window.openModal = function(modalId) {
   const modal = document.getElementById(modalId);
   if (modal) {
+    if (modalId === 'modal-add-sales-order') {
+      updateStockDropdowns();
+      updateCustomerDropdowns();
+    }
     modal.classList.add("active");
     setupLucideIcons();
     const firstInput = modal.querySelector("input, select");
@@ -2427,6 +2473,10 @@ window.submitAddSalesOrder = function() {
     amount: totalFormatted + ".00",
     status: "Audited & Balanced",
   });
+
+  // Switch view to Sales tab immediately
+  switchTab("sales");
+
   renderSales();
   renderInventory();
   renderFinance();
@@ -2809,6 +2859,19 @@ function updateStockDropdowns() {
         ${s.sku} • ${s.name}
       </option>
     `).join("");
+  }
+}
+
+function updateCustomerDropdowns() {
+  const soCustomerSelect = document.getElementById("so-customer");
+  if (soCustomerSelect) {
+    const currVal = soCustomerSelect.value;
+    soCustomerSelect.innerHTML = enterpriseData.customers.map(c => `
+      <option value="${escapeHtml(c.name)}">${escapeHtml(c.name)} (${c.segment})</option>
+    `).join("");
+    if (currVal && enterpriseData.customers.some(c => c.name === currVal)) {
+      soCustomerSelect.value = currVal;
+    }
   }
 }
 
