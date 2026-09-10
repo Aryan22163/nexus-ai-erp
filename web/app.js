@@ -290,6 +290,8 @@ const enterpriseData = {
 // Initialize Application
 document.addEventListener("DOMContentLoaded", () => {
   setupNavigation();
+  setupSidebarToggle();
+  setupThemeSwitcher();
   setupLucideIcons();
   checkApiConnectivity();
   updateStockDropdowns();
@@ -2239,6 +2241,89 @@ function generateAIResponse(query, container) {
   container.appendChild(botMsg);
   container.scrollTop = container.scrollHeight;
   setupLucideIcons();
+}
+
+// Sidebar Toggle (3-Dot Menu) & Mobile Backdrop Handler
+function setupSidebarToggle() {
+  const toggleBtn = document.getElementById("sidebar-toggle-btn");
+  const sidebar = document.getElementById("app-sidebar");
+  const backdrop = document.getElementById("sidebar-backdrop");
+  const navItems = document.querySelectorAll(".sidebar-nav .nav-item");
+
+  if (!toggleBtn || !sidebar) return;
+
+  toggleBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    if (window.innerWidth <= 768) {
+      // Mobile behavior: Toggle off-canvas drawer
+      const isOpen = sidebar.classList.contains("mobile-open");
+      if (isOpen) {
+        sidebar.classList.remove("mobile-open");
+        if (backdrop) backdrop.classList.remove("active");
+      } else {
+        sidebar.classList.add("mobile-open");
+        if (backdrop) backdrop.classList.add("active");
+      }
+    } else {
+      // Desktop behavior: Collapse to slim icon bar
+      sidebar.classList.toggle("collapsed");
+    }
+  });
+
+  if (backdrop) {
+    backdrop.addEventListener("click", () => {
+      sidebar.classList.remove("mobile-open");
+      backdrop.classList.remove("active");
+    });
+  }
+
+  // Close mobile sidebar when clicking any navigation link
+  navItems.forEach((item) => {
+    item.addEventListener("click", () => {
+      if (window.innerWidth <= 768) {
+        sidebar.classList.remove("mobile-open");
+        if (backdrop) backdrop.classList.remove("active");
+      }
+    });
+  });
+}
+
+// Light & Dark Theme Switcher Handler
+function setupThemeSwitcher() {
+  const themeBtn = document.getElementById("theme-toggle-btn");
+  const themeIcon = document.getElementById("theme-toggle-icon");
+  if (!themeBtn) return;
+
+  // Read saved theme from localStorage
+  const savedTheme = localStorage.getItem("nexus_theme") || "light";
+  applyTheme(savedTheme);
+
+  themeBtn.addEventListener("click", () => {
+    const currentTheme = document.documentElement.getAttribute("data-theme") || "light";
+    const newTheme = currentTheme === "dark" ? "light" : "dark";
+    applyTheme(newTheme);
+    localStorage.setItem("nexus_theme", newTheme);
+    if (typeof showToast === "function") {
+      showToast(`Switched to ${newTheme === "dark" ? "Dark" : "Light"} Mode`, "info");
+    }
+  });
+
+  function applyTheme(theme) {
+    if (theme === "dark") {
+      document.documentElement.setAttribute("data-theme", "dark");
+      if (themeIcon) {
+        themeIcon.setAttribute("data-lucide", "sun");
+      }
+      themeBtn.setAttribute("title", "Switch to Light Mode");
+    } else {
+      document.documentElement.removeAttribute("data-theme");
+      if (themeIcon) {
+        themeIcon.setAttribute("data-lucide", "moon");
+      }
+      themeBtn.setAttribute("title", "Switch to Dark Mode");
+    }
+    setupLucideIcons();
+  }
 }
 
 // Drawer Handlers

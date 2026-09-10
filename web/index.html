@@ -15,12 +15,15 @@
   <script src="https://unpkg.com/lucide@latest"></script>
 
   <!-- Core Vanilla CSS Design System -->
-  <link rel="stylesheet" href="style.css?v=2.0">
+  <link rel="stylesheet" href="style.css?v=3.0">
 </head>
 <body>
-  <div class="app-container">
+  <!-- Sidebar Backdrop for Mobile -->
+  <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+
+  <div class="app-container" id="app-container">
     <!-- Sidebar Navigation -->
-    <aside class="sidebar">
+    <aside class="sidebar" id="app-sidebar">
       <div class="sidebar-brand">
         <div class="brand-logo">
           <i data-lucide="sparkles" class="brand-icon"></i>
@@ -101,9 +104,14 @@
     <main class="main-content">
       <!-- Top App Bar -->
       <header class="topbar">
-        <div class="topbar-search">
-          <i data-lucide="search" class="search-icon"></i>
-          <input type="text" id="global-search" placeholder="Search orders, customers, invoices, accounts, SKUs (Press ⌘K)..." />
+        <div class="topbar-left">
+          <button class="btn btn-secondary btn-icon sidebar-toggle-btn" id="sidebar-toggle-btn" title="Toggle Navigation Sidebar" aria-label="Toggle Navigation Sidebar">
+            <i data-lucide="more-vertical"></i>
+          </button>
+          <div class="topbar-search">
+            <i data-lucide="search" class="search-icon"></i>
+            <input type="text" id="global-search" placeholder="Search orders, customers, invoices, accounts, SKUs (Press ⌘K)..." />
+          </div>
         </div>
 
         <div class="topbar-actions">
@@ -116,9 +124,8 @@
             <i data-lucide="refresh-cw"></i>
           </button>
 
-          <button class="btn btn-primary" id="open-ai-drawer-btn">
-            <i data-lucide="sparkles"></i>
-            <span>Ask AI Copilot</span>
+          <button class="btn btn-secondary btn-icon" id="theme-toggle-btn" title="Switch Light/Dark Theme" aria-label="Switch Light/Dark Theme">
+            <i data-lucide="moon" id="theme-toggle-icon"></i>
           </button>
         </div>
       </header>
